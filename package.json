@@ -1,5 +1,5 @@
 {
-  "name": "msbd-app-nov-10-2023",
+  "name": "branch-msbd-app",
   "private": true,
   "scripts": {
     "build": "NODE_ENV=production remix build",
