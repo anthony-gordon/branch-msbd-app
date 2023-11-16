@@ -36,3 +36,15 @@ model variantShipDateData {
   bundleProduct    Boolean  @default(false)
   updated          DateTime @default(now())
 }
+
+model settings {
+  id                               Int      @id @default(autoincrement())
+  defaultProcessingTime            Int      @default(2)
+  buffer                           Int      @default(5)
+  dtcProcessingTimeMessage         String   @default("Ships for free #processing_time_description#.")
+  dtcDateAvailableMessage          String   @default("Ships for free #date_available_description#.")
+  b2bProcessingTimeMessage         String   @default("Ships with white glove installation #processing_time_description#.")
+  b2bDateAvailableMessage          String   @default("Ships with white glove installation #date_available_description#.")
+  dtcDefaultShippingRange          Int      @default(1)
+  b2bDefaultShippingRange          Int      @default(1)
+}

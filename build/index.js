@@ -205,6 +205,9 @@ var import_tiny_invariant = require("tiny-invariant");
 async function fetchDBShipDateData() {
   return await db_server_default.variantShipDateData.findMany();
 }
+async function fetchSettings() {
+  return await db_server_default.settings.findMany();
+}
 
 // app/routes/app.variantshipdatedata.jsx
 var import_react4 = require("react");
@@ -1018,89 +1021,93 @@ function QRCodeForm() {
   }, this);
 }
 
-// app/routes/app.additional.jsx
-var app_additional_exports = {};
-__export(app_additional_exports, {
-  default: () => AdditionalPage
+// app/routes/app.settings.jsx
+var app_settings_exports = {};
+__export(app_settings_exports, {
+  default: () => SettingsPage,
+  loader: () => loader4
 });
-var import_polaris2 = require("@shopify/polaris"), import_jsx_dev_runtime5 = require("react/jsx-dev-runtime");
-function AdditionalPage() {
-  return /* @__PURE__ */ (0, import_jsx_dev_runtime5.jsxDEV)(import_polaris2.Page, { children: [
-    /* @__PURE__ */ (0, import_jsx_dev_runtime5.jsxDEV)("ui-title-bar", { title: "Additional page" }, void 0, !1, {
-      fileName: "app/routes/app.additional.jsx",
-      lineNumber: 15,
+var import_polaris2 = require("@shopify/polaris"), import_node6 = require("@remix-run/node"), import_react7 = require("@remix-run/react");
+var import_react8 = require("react");
+var import_jsx_dev_runtime5 = require("react/jsx-dev-runtime");
+async function loader4({ request }) {
+  let settings = await fetchSettings();
+  return (0, import_node6.json)({ settings });
+}
+function SettingsPage() {
+  let submit = (0, import_react7.useSubmit)(), settings = (0, import_react7.useLoaderData)().settings[0], [buffer, setBuffer] = (0, import_react8.useState)(settings.buffer), [defaultProcessingTime, setDefaultProcessingTime] = (0, import_react8.useState)(settings.defaultProcessingTime), [dtcDefaultShippingRange, setDtcDefaultShippingRange] = (0, import_react8.useState)(settings.dtcDefaultShippingRange), [b2bDefaultShippingRange, setB2bDefaultShippingRange] = (0, import_react8.useState)(settings.b2bDefaultShippingRange), [dtcDateAvailableMessage, setDtcDateAvailableMessage] = (0, import_react8.useState)(settings.dtcDateAvailableMessage), [dtcProcessingTimeMessage, setDtcProcessingTimeMessage] = (0, import_react8.useState)(settings.dtcProcessingTimeMessage), [b2bDateAvailableMessage, setB2bDateAvailableMessage] = (0, import_react8.useState)(settings.b2bDateAvailableMessage), [b2bProcessingTimeMessage, setb2bProcessingTimeMessage] = (0, import_react8.useState)(settings.b2bProcessingTimeMessage), handleSubmit = (0, import_react8.useCallback)(() => {
+    let updatedSettingsObject = {};
+    updatedSettingsObject.b2bDateAvailableMessage = b2bDateAvailableMessage, updatedSettingsObject.b2bDefaultShippingRange = b2bDefaultShippingRange, updatedSettingsObject.b2bProcessingTimeMessage = b2bProcessingTimeMessage, updatedSettingsObject.buffer = buffer, updatedSettingsObject.defaultProcessingTime = defaultProcessingTime, updatedSettingsObject.dtcDateAvailableMessage = dtcDateAvailableMessage, updatedSettingsObject.dtcDefaultShippingRange = dtcDefaultShippingRange, updatedSettingsObject.dtcProcessingTimeMessage = dtcProcessingTimeMessage, updatedSettingsObject.id = 1;
+    let sortedSettings = Object.keys(settings).sort().reduce(
+      (obj, key) => (obj[key] = settings[key], obj),
+      {}
+    );
+    console.log("updatedSettingsObject", updatedSettingsObject);
+    let difference = JSON.stringify(updatedSettingsObject) !== JSON.stringify(sortedSettings);
+    console.log("handle", JSON.stringify(sortedSettings), "second", JSON.stringify(updatedSettingsObject)), console.log("difference", difference);
+  }, []), handleRangeSliderChange = (0, import_react8.useCallback)(
+    (value) => setBuffer(value),
+    []
+  );
+  return console.log("settings", settings), /* @__PURE__ */ (0, import_jsx_dev_runtime5.jsxDEV)(import_polaris2.Page, { children: [
+    /* @__PURE__ */ (0, import_jsx_dev_runtime5.jsxDEV)("h1", { children: [
+      " ",
+      buffer,
+      " "
+    ] }, void 0, !0, {
+      fileName: "app/routes/app.settings.jsx",
+      lineNumber: 94,
+      columnNumber: 9
+    }, this),
+    /* @__PURE__ */ (0, import_jsx_dev_runtime5.jsxDEV)("ui-title-bar", { title: "Settings page" }, void 0, !1, {
+      fileName: "app/routes/app.settings.jsx",
+      lineNumber: 95,
       columnNumber: 7
     }, this),
     /* @__PURE__ */ (0, import_jsx_dev_runtime5.jsxDEV)(import_polaris2.Layout, { children: [
-      /* @__PURE__ */ (0, import_jsx_dev_runtime5.jsxDEV)(import_polaris2.Layout.Section, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime5.jsxDEV)(import_polaris2.Card, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime5.jsxDEV)(import_polaris2.BlockStack, { gap: "300", children: [
-        /* @__PURE__ */ (0, import_jsx_dev_runtime5.jsxDEV)(import_polaris2.Text, { as: "p", variant: "bodyMd", children: [
-          "The app template comes with an additional page which demonstrates how to create multiple pages within app navigation using",
-          " ",
-          /* @__PURE__ */ (0, import_jsx_dev_runtime5.jsxDEV)(
-            import_polaris2.Link,
-            {
-              url: "https://shopify.dev/docs/apps/tools/app-bridge",
-              target: "_blank",
-              removeUnderline: !0,
-              children: "App Bridge"
-            },
-            void 0,
-            !1,
-            {
-              fileName: "app/routes/app.additional.jsx",
-              lineNumber: 24,
-              columnNumber: 17
-            },
-            this
-          ),
-          "."
-        ] }, void 0, !0, {
-          fileName: "app/routes/app.additional.jsx",
-          lineNumber: 20,
-          columnNumber: 15
-        }, this),
-        /* @__PURE__ */ (0, import_jsx_dev_runtime5.jsxDEV)(import_polaris2.Text, { as: "p", variant: "bodyMd", children: [
-          "To create your own page and have it show up in the app navigation, add a page inside ",
-          /* @__PURE__ */ (0, import_jsx_dev_runtime5.jsxDEV)(Code, { children: "app/routes" }, void 0, !1, {
-            fileName: "app/routes/app.additional.jsx",
-            lineNumber: 35,
-            columnNumber: 47
-          }, this),
-          ", and a link to it in the ",
-          /* @__PURE__ */ (0, import_jsx_dev_runtime5.jsxDEV)(Code, { children: "<ui-nav-menu>" }, void 0, !1, {
-            fileName: "app/routes/app.additional.jsx",
-            lineNumber: 36,
-            columnNumber: 35
-          }, this),
-          " component found in ",
-          /* @__PURE__ */ (0, import_jsx_dev_runtime5.jsxDEV)(Code, { children: "app/routes/app.jsx" }, void 0, !1, {
-            fileName: "app/routes/app.additional.jsx",
-            lineNumber: 37,
-            columnNumber: 26
-          }, this),
-          "."
-        ] }, void 0, !0, {
-          fileName: "app/routes/app.additional.jsx",
-          lineNumber: 33,
-          columnNumber: 15
+      /* @__PURE__ */ (0, import_jsx_dev_runtime5.jsxDEV)(import_polaris2.Layout.Section, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime5.jsxDEV)(import_polaris2.Form, { onSubmit: handleSubmit, children: /* @__PURE__ */ (0, import_jsx_dev_runtime5.jsxDEV)(import_polaris2.FormLayout, { children: [
+        /* @__PURE__ */ (0, import_jsx_dev_runtime5.jsxDEV)(
+          import_polaris2.RangeSlider,
+          {
+            label: "Buffer days",
+            value: buffer,
+            onChange: handleRangeSliderChange,
+            output: !0,
+            min: 0,
+            max: 20,
+            step: 1
+          },
+          void 0,
+          !1,
+          {
+            fileName: "app/routes/app.settings.jsx",
+            lineNumber: 100,
+            columnNumber: 10
+          },
+          this
+        ),
+        /* @__PURE__ */ (0, import_jsx_dev_runtime5.jsxDEV)(import_polaris2.Button, { submit: !0, children: "Submit" }, void 0, !1, {
+          fileName: "app/routes/app.settings.jsx",
+          lineNumber: 110,
+          columnNumber: 9
         }, this)
       ] }, void 0, !0, {
-        fileName: "app/routes/app.additional.jsx",
-        lineNumber: 19,
-        columnNumber: 13
+        fileName: "app/routes/app.settings.jsx",
+        lineNumber: 99,
+        columnNumber: 7
       }, this) }, void 0, !1, {
-        fileName: "app/routes/app.additional.jsx",
-        lineNumber: 18,
-        columnNumber: 11
+        fileName: "app/routes/app.settings.jsx",
+        lineNumber: 98,
+        columnNumber: 9
       }, this) }, void 0, !1, {
-        fileName: "app/routes/app.additional.jsx",
-        lineNumber: 17,
+        fileName: "app/routes/app.settings.jsx",
+        lineNumber: 97,
         columnNumber: 9
       }, this),
       /* @__PURE__ */ (0, import_jsx_dev_runtime5.jsxDEV)(import_polaris2.Layout.Section, { variant: "oneThird", children: /* @__PURE__ */ (0, import_jsx_dev_runtime5.jsxDEV)(import_polaris2.Card, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime5.jsxDEV)(import_polaris2.BlockStack, { gap: "200", children: [
         /* @__PURE__ */ (0, import_jsx_dev_runtime5.jsxDEV)(import_polaris2.Text, { as: "h2", variant: "headingMd", children: "Resources" }, void 0, !1, {
-          fileName: "app/routes/app.additional.jsx",
-          lineNumber: 45,
+          fileName: "app/routes/app.settings.jsx",
+          lineNumber: 118,
           columnNumber: 15
         }, this),
         /* @__PURE__ */ (0, import_jsx_dev_runtime5.jsxDEV)(import_polaris2.List, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime5.jsxDEV)(import_polaris2.List.Item, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime5.jsxDEV)(
@@ -1114,90 +1121,62 @@ function AdditionalPage() {
           void 0,
           !1,
           {
-            fileName: "app/routes/app.additional.jsx",
-            lineNumber: 50,
+            fileName: "app/routes/app.settings.jsx",
+            lineNumber: 123,
             columnNumber: 19
           },
           this
         ) }, void 0, !1, {
-          fileName: "app/routes/app.additional.jsx",
-          lineNumber: 49,
+          fileName: "app/routes/app.settings.jsx",
+          lineNumber: 122,
           columnNumber: 17
         }, this) }, void 0, !1, {
-          fileName: "app/routes/app.additional.jsx",
-          lineNumber: 48,
+          fileName: "app/routes/app.settings.jsx",
+          lineNumber: 121,
           columnNumber: 15
         }, this)
       ] }, void 0, !0, {
-        fileName: "app/routes/app.additional.jsx",
-        lineNumber: 44,
+        fileName: "app/routes/app.settings.jsx",
+        lineNumber: 117,
         columnNumber: 13
       }, this) }, void 0, !1, {
-        fileName: "app/routes/app.additional.jsx",
-        lineNumber: 43,
+        fileName: "app/routes/app.settings.jsx",
+        lineNumber: 116,
         columnNumber: 11
       }, this) }, void 0, !1, {
-        fileName: "app/routes/app.additional.jsx",
-        lineNumber: 42,
+        fileName: "app/routes/app.settings.jsx",
+        lineNumber: 115,
         columnNumber: 9
       }, this)
     ] }, void 0, !0, {
-      fileName: "app/routes/app.additional.jsx",
-      lineNumber: 16,
+      fileName: "app/routes/app.settings.jsx",
+      lineNumber: 96,
       columnNumber: 7
     }, this)
   ] }, void 0, !0, {
-    fileName: "app/routes/app.additional.jsx",
-    lineNumber: 14,
+    fileName: "app/routes/app.settings.jsx",
+    lineNumber: 93,
     columnNumber: 5
   }, this);
-}
-function Code({ children }) {
-  return /* @__PURE__ */ (0, import_jsx_dev_runtime5.jsxDEV)(
-    import_polaris2.Box,
-    {
-      as: "span",
-      padding: "025",
-      paddingInlineStart: "100",
-      paddingInlineEnd: "100",
-      background: "bg-surface-active",
-      borderWidth: "025",
-      borderColor: "border",
-      borderRadius: "100",
-      children: /* @__PURE__ */ (0, import_jsx_dev_runtime5.jsxDEV)("code", { children }, void 0, !1, {
-        fileName: "app/routes/app.additional.jsx",
-        lineNumber: 79,
-        columnNumber: 7
-      }, this)
-    },
-    void 0,
-    !1,
-    {
-      fileName: "app/routes/app.additional.jsx",
-      lineNumber: 69,
-      columnNumber: 5
-    },
-    this
-  );
 }
 
 // app/routes/qrcodes.$id.jsx
 var qrcodes_id_exports = {};
 __export(qrcodes_id_exports, {
   default: () => QRCode,
-  loader: () => loader4
+  loader: () => loader5
 });
-var import_node6 = require("@remix-run/node"), import_tiny_invariant4 = __toESM(require("tiny-invariant")), import_react7 = require("@remix-run/react");
-var import_jsx_dev_runtime6 = require("react/jsx-dev-runtime"), loader4 = async ({ params }) => {
+var import_node7 = require("@remix-run/node"), import_tiny_invariant4 = __toESM(require("tiny-invariant")), import_react9 = require("@remix-run/react");
+var import_jsx_dev_runtime6 = require("react/jsx-dev-runtime"), loader5 = async ({ params }) => {
   (0, import_tiny_invariant4.default)(params.id, "Could not find QR code destination");
   let id = Number(params.id), qrCode = await db_server_default.qRCode.findFirst({ where: { id } });
-  return (0, import_tiny_invariant4.default)(qrCode, "Could not find QR code destination"), (0, import_node6.json)({
+  return (0, import_tiny_invariant4.default)(qrCode, "Could not find QR code destination"), (0, import_node7.json)({
     title: qrCode.title,
     image: await getQRCodeImage(id)
   });
 };
 function QRCode() {
-  let { image, title } = (0, import_react7.useLoaderData)();
+  let { image, title } = (0, import_react9.useLoaderData)();
   return /* @__PURE__ */ (0, import_jsx_dev_runtime6.jsxDEV)(import_jsx_dev_runtime6.Fragment, { children: [
     /* @__PURE__ */ (0, import_jsx_dev_runtime6.jsxDEV)("h1", { children: title }, void 0, !1, {
       fileName: "app/routes/qrcodes.$id.jsx",
@@ -1220,14 +1199,14 @@ function QRCode() {
 var app_index_exports = {};
 __export(app_index_exports, {
   default: () => Index,
-  loader: () => loader5
+  loader: () => loader6
 });
-var import_node7 = require("@remix-run/node"), import_react8 = require("@remix-run/react");
+var import_node8 = require("@remix-run/node"), import_react10 = require("@remix-run/react");
 var import_polaris3 = require("@shopify/polaris");
 var import_polaris_icons2 = require("@shopify/polaris-icons"), import_jsx_dev_runtime7 = require("react/jsx-dev-runtime");
-async function loader5({ request }) {
+async function loader6({ request }) {
   let { admin, session } = await authenticate.admin(request), qrCodes = await getQRCodes(session.shop, admin.graphql);
-  return (0, import_node7.json)({
+  return (0, import_node8.json)({
     qrCodes
   });
 }
@@ -1309,7 +1288,7 @@ var QRTable = ({ qrCodes }) => /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDE
     lineNumber: 71,
     columnNumber: 5
   }, this),
-  /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris3.IndexTable.Cell, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_react8.Link, { to: `qrcodes/${qrCode.id}`, children: truncate(qrCode.title) }, void 0, !1, {
+  /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris3.IndexTable.Cell, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_react10.Link, { to: `qrcodes/${qrCode.id}`, children: truncate(qrCode.title) }, void 0, !1, {
     fileName: "app/routes/app._index.jsx",
     lineNumber: 79,
     columnNumber: 7
@@ -1358,7 +1337,7 @@ var QRTable = ({ qrCodes }) => /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDE
   columnNumber: 3
 }, this);
 function Index() {
-  let { qrCodes } = (0, import_react8.useLoaderData)(), navigate = (0, import_react8.useNavigate)();
+  let { qrCodes } = (0, import_react10.useLoaderData)(), navigate = (0, import_react10.useNavigate)();
   return /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris3.Page, { children: [
     /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)("ui-title-bar", { title: "QR codes", children: /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)("button", { variant: "primary", onClick: () => navigate("/app/qrcodes/new"), children: "Create QR code" }, void 0, !1, {
       fileName: "app/routes/app._index.jsx",
@@ -1403,9 +1382,9 @@ __export(route_exports, {
   action: () => action3,
   default: () => Auth,
   links: () => links,
-  loader: () => loader6
+  loader: () => loader7
 });
-var import_react9 = require("react"), import_node8 = require("@remix-run/node"), import_polaris4 = require("@shopify/polaris"), import_react10 = require("@remix-run/react");
+var import_react11 = require("react"), import_node9 = require("@remix-run/node"), import_polaris4 = require("@shopify/polaris"), import_react12 = require("@remix-run/react");
 
 // node_modules/@shopify/polaris/build/esm/styles.css
 var styles_default = "/build/_assets/styles-XBXYCZPP.css";
@@ -1417,21 +1396,21 @@ function loginErrorMessage(loginErrors) {
 }
 
 // app/routes/auth.login/route.jsx
-var import_jsx_dev_runtime8 = require("react/jsx-dev-runtime"), links = () => [{ rel: "stylesheet", href: styles_default }], loader6 = async ({ request }) => {
+var import_jsx_dev_runtime8 = require("react/jsx-dev-runtime"), links = () => [{ rel: "stylesheet", href: styles_default }], loader7 = async ({ request }) => {
   let errors = loginErrorMessage(await login(request));
-  return (0, import_node8.json)({
+  return (0, import_node9.json)({
     errors,
     polarisTranslations: require("@shopify/polaris/locales/en.json")
   });
 }, action3 = async ({ request }) => {
   let errors = loginErrorMessage(await login(request));
-  return (0, import_node8.json)({
+  return (0, import_node9.json)({
     errors
   });
 };
 function Auth() {
-  let loaderData = (0, import_react10.useLoaderData)(), actionData = (0, import_react10.useActionData)(), [shop, setShop] = (0, import_react9.useState)(""), { errors } = actionData || loaderData;
-  return /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(import_polaris4.AppProvider, { i18n: loaderData.polarisTranslations, children: /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(import_polaris4.Page, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(import_polaris4.Card, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(import_react10.Form, { method: "post", children: /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(import_polaris4.FormLayout, { children: [
+  let loaderData = (0, import_react12.useLoaderData)(), actionData = (0, import_react12.useActionData)(), [shop, setShop] = (0, import_react11.useState)(""), { errors } = actionData || loaderData;
+  return /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(import_polaris4.AppProvider, { i18n: loaderData.polarisTranslations, children: /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(import_polaris4.Page, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(import_polaris4.Card, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(import_react12.Form, { method: "post", children: /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(import_polaris4.FormLayout, { children: [
     /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(import_polaris4.Text, { variant: "headingMd", as: "h2", children: "Log in" }, void 0, !1, {
       fileName: "app/routes/auth.login/route.jsx",
       lineNumber: 48,
@@ -1515,22 +1494,22 @@ var route_exports2 = {};
 __export(route_exports2, {
   default: () => App2,
   links: () => links2,
-  loader: () => loader7
+  loader: () => loader8
 });
-var import_node9 = require("@remix-run/node"), import_react11 = require("@remix-run/react");
+var import_node10 = require("@remix-run/node"), import_react13 = require("@remix-run/react");
 
 // app/routes/_index/style.css
 var style_default = "/build/_assets/style-M2E3MJNO.css";
 
 // app/routes/_index/route.jsx
-var import_jsx_dev_runtime9 = require("react/jsx-dev-runtime"), links2 = () => [{ rel: "stylesheet", href: style_default }], loader7 = async ({ request }) => {
+var import_jsx_dev_runtime9 = require("react/jsx-dev-runtime"), links2 = () => [{ rel: "stylesheet", href: style_default }], loader8 = async ({ request }) => {
   let url = new URL(request.url);
   if (url.searchParams.get("shop"))
-    throw (0, import_node9.redirect)(`/app?${url.searchParams.toString()}`);
-  return (0, import_node9.json)({ showForm: Boolean(login) });
+    throw (0, import_node10.redirect)(`/app?${url.searchParams.toString()}`);
+  return (0, import_node10.json)({ showForm: Boolean(login) });
 };
 function App2() {
-  let { showForm } = (0, import_react11.useLoaderData)();
+  let { showForm } = (0, import_react13.useLoaderData)();
   return /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("div", { className: "index", children: /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("div", { className: "content", children: [
     /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("h1", { children: "A short heading about [your app]" }, void 0, !1, {
       fileName: "app/routes/_index/route.jsx",
@@ -1542,7 +1521,7 @@ function App2() {
       lineNumber: 25,
       columnNumber: 9
     }, this),
-    showForm && /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(import_react11.Form, { method: "post", action: "/auth/login", children: [
+    showForm && /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(import_react13.Form, { method: "post", action: "/auth/login", children: [
       /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("label", { children: [
         /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("span", { children: "Shop domain" }, void 0, !1, {
           fileName: "app/routes/_index/route.jsx",
@@ -1630,9 +1609,9 @@ function App2() {
 // app/routes/auth.$.jsx
 var auth_exports = {};
 __export(auth_exports, {
-  loader: () => loader8
+  loader: () => loader9
 });
-var loader8 = async ({ request }) => (await authenticate.admin(request), null);
+var loader9 = async ({ request }) => (await authenticate.admin(request), null);
 
 // app/routes/app.jsx
 var app_exports = {};
@@ -1641,23 +1620,28 @@ __export(app_exports, {
   default: () => App3,
   headers: () => headers,
   links: () => links3,
-  loader: () => loader9
+  loader: () => loader10
 });
-var import_node10 = require("@remix-run/node"), import_react12 = require("@remix-run/react");
-var import_server4 = require("@shopify/shopify-app-remix/server"), import_react13 = require("@shopify/shopify-app-remix/react");
-var import_jsx_dev_runtime10 = require("react/jsx-dev-runtime"), links3 = () => [{ rel: "stylesheet", href: styles_default }], loader9 = async ({ request }) => (await authenticate.admin(request), (0, import_node10.json)({ apiKey: process.env.SHOPIFY_API_KEY || "" }));
+var import_node11 = require("@remix-run/node"), import_react14 = require("@remix-run/react");
+var import_server4 = require("@shopify/shopify-app-remix/server"), import_react15 = require("@shopify/shopify-app-remix/react");
+var import_jsx_dev_runtime10 = require("react/jsx-dev-runtime"), links3 = () => [{ rel: "stylesheet", href: styles_default }], loader10 = async ({ request }) => (await authenticate.admin(request), (0, import_node11.json)({ apiKey: process.env.SHOPIFY_API_KEY || "" }));
 function App3() {
-  let { apiKey } = (0, import_react12.useLoaderData)();
-  return /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)(import_react13.AppProvider, { isEmbeddedApp: !0, apiKey, children: [
+  let { apiKey } = (0, import_react14.useLoaderData)();
+  return /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)(import_react15.AppProvider, { isEmbeddedApp: !0, apiKey, children: [
     /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)("ui-nav-menu", { children: [
-      /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)(import_react12.Link, { to: "/app", rel: "home", children: "Home" }, void 0, !1, {
+      /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)(import_react14.Link, { to: "/app", rel: "home", children: "Home" }, void 0, !1, {
         fileName: "app/routes/app.jsx",
         lineNumber: 22,
         columnNumber: 9
       }, this),
-      /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)(import_react12.Link, { to: "/app/additional", children: "Additional page" }, void 0, !1, {
+      /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)(import_react14.Link, { to: "/app/settings", children: "Settings" }, void 0, !1, {
         fileName: "app/routes/app.jsx",
         lineNumber: 25,
+        columnNumber: 9
+      }, this),
+      /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)(import_react14.Link, { to: "/app/variantshipdatedata", children: "Variant data" }, void 0, !1, {
+        fileName: "app/routes/app.jsx",
+        lineNumber: 26,
         columnNumber: 9
       }, this)
     ] }, void 0, !0, {
@@ -1665,9 +1649,9 @@ function App3() {
       lineNumber: 21,
       columnNumber: 7
     }, this),
-    /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)(import_react12.Outlet, {}, void 0, !1, {
+    /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)(import_react14.Outlet, {}, void 0, !1, {
       fileName: "app/routes/app.jsx",
-      lineNumber: 27,
+      lineNumber: 28,
       columnNumber: 7
     }, this)
   ] }, void 0, !0, {
@@ -1677,12 +1661,12 @@ function App3() {
   }, this);
 }
 function ErrorBoundary() {
-  return import_server4.boundary.error((0, import_react12.useRouteError)());
+  return import_server4.boundary.error((0, import_react14.useRouteError)());
 }
 var headers = (headersArgs) => import_server4.boundary.headers(headersArgs);
 
 // server-assets-manifest:@remix-run/dev/assets-manifest
-var assets_manifest_default = { entry: { module: "/build/entry.client-STYRVQSO.js", imports: ["/build/_shared/chunk-ZWGWGGVF.js", "/build/_shared/chunk-GIAAE3CH.js", "/build/_shared/chunk-FROLWTDC.js", "/build/_shared/chunk-XU7DNSPJ.js", "/build/_shared/chunk-BOXFZXVX.js", "/build/_shared/chunk-DYYXLKDN.js", "/build/_shared/chunk-UWV35TSL.js", "/build/_shared/chunk-PNG5AS42.js"] }, routes: { root: { id: "root", parentId: void 0, path: "", index: void 0, caseSensitive: void 0, module: "/build/root-V2NJDACA.js", imports: void 0, hasAction: !1, hasLoader: !1, hasErrorBoundary: !1 }, "routes/_index": { id: "routes/_index", parentId: "root", path: void 0, index: !0, caseSensitive: void 0, module: "/build/routes/_index-YA4QCRWA.js", imports: ["/build/_shared/chunk-3GJP5LZF.js", "/build/_shared/chunk-G7CHZRZX.js"], hasAction: !1, hasLoader: !0, hasErrorBoundary: !1 }, "routes/app": { id: "routes/app", parentId: "root", path: "app", index: void 0, caseSensitive: void 0, module: "/build/routes/app-XUKZDYQT.js", imports: ["/build/_shared/chunk-NMZL6IDN.js", "/build/_shared/chunk-MIBD2XN6.js", "/build/_shared/chunk-SU66BP3D.js", "/build/_shared/chunk-OIJQMBPJ.js", "/build/_shared/chunk-G7CHZRZX.js"], hasAction: !1, hasLoader: !0, hasErrorBoundary: !0 }, "routes/app._index": { id: "routes/app._index", parentId: "routes/app", path: void 0, index: !0, caseSensitive: void 0, module: "/build/routes/app._index-4LZLMMYX.js", imports: ["/build/_shared/chunk-3EYAZZDZ.js"], hasAction: !1, hasLoader: !0, hasErrorBoundary: !1 }, "routes/app.additional": { id: "routes/app.additional", parentId: "routes/app", path: "additional", index: void 0, caseSensitive: void 0, module: "/build/routes/app.additional-B63EHRTR.js", imports: void 0, hasAction: !1, hasLoader: !1, hasErrorBoundary: !1 }, "routes/app.qrcodes.$id": { id: "routes/app.qrcodes.$id", parentId: "routes/app", path: "qrcodes/:id", index: void 0, caseSensitive: void 0, module: "/build/routes/app.qrcodes.$id-PDYJMLGT.js", imports: ["/build/_shared/chunk-DXZPNPAJ.js", "/build/_shared/chunk-3EYAZZDZ.js"], hasAction: !0, hasLoader: !0, hasErrorBoundary: !1 }, "routes/app.variantshipdatedata": { id: "routes/app.variantshipdatedata", parentId: "routes/app", path: "variantshipdatedata", index: void 0, caseSensitive: void 0, module: "/build/routes/app.variantshipdatedata-5DFSIQG3.js", imports: void 0, hasAction: !0, hasLoader: !0, hasErrorBoundary: !1 }, "routes/auth.$": { id: "routes/auth.$", parentId: "root", path: "auth/*", index: void 0, caseSensitive: void 0, module: "/build/routes/auth.$-4B5WQABX.js", imports: void 0, hasAction: !1, hasLoader: !0, hasErrorBoundary: !1 }, "routes/auth.login": { id: "routes/auth.login", parentId: "root", path: "auth/login", index: void 0, caseSensitive: void 0, module: "/build/routes/auth.login-BUXUUBN6.js", imports: ["/build/_shared/chunk-3GJP5LZF.js", "/build/_shared/chunk-MIBD2XN6.js", "/build/_shared/chunk-OIJQMBPJ.js", "/build/_shared/chunk-G7CHZRZX.js"], hasAction: !0, hasLoader: !0, hasErrorBoundary: !1 }, "routes/qrcodes.$id": { id: "routes/qrcodes.$id", parentId: "root", path: "qrcodes/:id", index: void 0, caseSensitive: void 0, module: "/build/routes/qrcodes.$id-WDPZA2WS.js", imports: ["/build/_shared/chunk-DXZPNPAJ.js", "/build/_shared/chunk-G7CHZRZX.js"], hasAction: !1, hasLoader: !0, hasErrorBoundary: !1 }, "routes/qrcodes.$id.scan": { id: "routes/qrcodes.$id.scan", parentId: "routes/qrcodes.$id", path: "scan", index: void 0, caseSensitive: void 0, module: "/build/routes/qrcodes.$id.scan-2CY3SXY7.js", imports: void 0, hasAction: !1, hasLoader: !0, hasErrorBoundary: !1 }, "routes/webhooks": { id: "routes/webhooks", parentId: "root", path: "webhooks", index: void 0, caseSensitive: void 0, module: "/build/routes/webhooks-JFV2P4HI.js", imports: void 0, hasAction: !0, hasLoader: !1, hasErrorBoundary: !1 } }, version: "39e246e8", hmr: { runtime: "/build/_shared/chunk-DYYXLKDN.js", timestamp: 1700130118243 }, url: "/build/manifest-39E246E8.js" };
+var assets_manifest_default = { entry: { module: "/build/entry.client-W5ECR2UB.js", imports: ["/build/_shared/chunk-ZWGWGGVF.js", "/build/_shared/chunk-GIAAE3CH.js", "/build/_shared/chunk-DEW2QNTH.js", "/build/_shared/chunk-XU7DNSPJ.js", "/build/_shared/chunk-BOXFZXVX.js", "/build/_shared/chunk-DYYXLKDN.js", "/build/_shared/chunk-UWV35TSL.js", "/build/_shared/chunk-PNG5AS42.js"] }, routes: { root: { id: "root", parentId: void 0, path: "", index: void 0, caseSensitive: void 0, module: "/build/root-FXCIHQJN.js", imports: void 0, hasAction: !1, hasLoader: !1, hasErrorBoundary: !1 }, "routes/_index": { id: "routes/_index", parentId: "root", path: void 0, index: !0, caseSensitive: void 0, module: "/build/routes/_index-2FBZIGXG.js", imports: ["/build/_shared/chunk-3GJP5LZF.js", "/build/_shared/chunk-G7CHZRZX.js"], hasAction: !1, hasLoader: !0, hasErrorBoundary: !1 }, "routes/app": { id: "routes/app", parentId: "root", path: "app", index: void 0, caseSensitive: void 0, module: "/build/routes/app-CUJRBNXE.js", imports: ["/build/_shared/chunk-NMZL6IDN.js", "/build/_shared/chunk-MIBD2XN6.js", "/build/_shared/chunk-SU66BP3D.js", "/build/_shared/chunk-SZZLSVDJ.js", "/build/_shared/chunk-G7CHZRZX.js"], hasAction: !1, hasLoader: !0, hasErrorBoundary: !0 }, "routes/app._index": { id: "routes/app._index", parentId: "routes/app", path: void 0, index: !0, caseSensitive: void 0, module: "/build/routes/app._index-46CEGJN3.js", imports: ["/build/_shared/chunk-3EYAZZDZ.js"], hasAction: !1, hasLoader: !0, hasErrorBoundary: !1 }, "routes/app.qrcodes.$id": { id: "routes/app.qrcodes.$id", parentId: "routes/app", path: "qrcodes/:id", index: void 0, caseSensitive: void 0, module: "/build/routes/app.qrcodes.$id-6QJUNXRH.js", imports: ["/build/_shared/chunk-DXZPNPAJ.js", "/build/_shared/chunk-3EYAZZDZ.js"], hasAction: !0, hasLoader: !0, hasErrorBoundary: !1 }, "routes/app.settings": { id: "routes/app.settings", parentId: "routes/app", path: "settings", index: void 0, caseSensitive: void 0, module: "/build/routes/app.settings-5A4O2XE4.js", imports: ["/build/_shared/chunk-C3NP7DHP.js"], hasAction: !1, hasLoader: !0, hasErrorBoundary: !1 }, "routes/app.variantshipdatedata": { id: "routes/app.variantshipdatedata", parentId: "routes/app", path: "variantshipdatedata", index: void 0, caseSensitive: void 0, module: "/build/routes/app.variantshipdatedata-HEOVBJRZ.js", imports: ["/build/_shared/chunk-C3NP7DHP.js"], hasAction: !0, hasLoader: !0, hasErrorBoundary: !1 }, "routes/auth.$": { id: "routes/auth.$", parentId: "root", path: "auth/*", index: void 0, caseSensitive: void 0, module: "/build/routes/auth.$-4B5WQABX.js", imports: void 0, hasAction: !1, hasLoader: !0, hasErrorBoundary: !1 }, "routes/auth.login": { id: "routes/auth.login", parentId: "root", path: "auth/login", index: void 0, caseSensitive: void 0, module: "/build/routes/auth.login-MPDDNUEP.js", imports: ["/build/_shared/chunk-3GJP5LZF.js", "/build/_shared/chunk-MIBD2XN6.js", "/build/_shared/chunk-SZZLSVDJ.js", "/build/_shared/chunk-G7CHZRZX.js"], hasAction: !0, hasLoader: !0, hasErrorBoundary: !1 }, "routes/qrcodes.$id": { id: "routes/qrcodes.$id", parentId: "root", path: "qrcodes/:id", index: void 0, caseSensitive: void 0, module: "/build/routes/qrcodes.$id-KGE4UMEU.js", imports: ["/build/_shared/chunk-DXZPNPAJ.js", "/build/_shared/chunk-G7CHZRZX.js"], hasAction: !1, hasLoader: !0, hasErrorBoundary: !1 }, "routes/qrcodes.$id.scan": { id: "routes/qrcodes.$id.scan", parentId: "routes/qrcodes.$id", path: "scan", index: void 0, caseSensitive: void 0, module: "/build/routes/qrcodes.$id.scan-2CY3SXY7.js", imports: void 0, hasAction: !1, hasLoader: !0, hasErrorBoundary: !1 }, "routes/webhooks": { id: "routes/webhooks", parentId: "root", path: "webhooks", index: void 0, caseSensitive: void 0, module: "/build/routes/webhooks-JFV2P4HI.js", imports: void 0, hasAction: !0, hasLoader: !1, hasErrorBoundary: !1 } }, version: "8dc27b6e", hmr: { runtime: "/build/_shared/chunk-DYYXLKDN.js", timestamp: 1700143346704 }, url: "/build/manifest-8DC27B6E.js" };
 
 // server-entry-module:@remix-run/dev/server-build
 var mode = "development", assetsBuildDirectory = "public/build", future = { v3_fetcherPersist: !1 }, publicPath = "/build/", entry = { module: entry_server_exports }, routes = {
@@ -1718,13 +1702,13 @@ var mode = "development", assetsBuildDirectory = "public/build", future = { v3_f
     caseSensitive: void 0,
     module: app_qrcodes_id_exports
   },
-  "routes/app.additional": {
-    id: "routes/app.additional",
+  "routes/app.settings": {
+    id: "routes/app.settings",
     parentId: "routes/app",
-    path: "additional",
+    path: "settings",
     index: void 0,
     caseSensitive: void 0,
-    module: app_additional_exports
+    module: app_settings_exports
   },
   "routes/qrcodes.$id": {
     id: "routes/qrcodes.$id",

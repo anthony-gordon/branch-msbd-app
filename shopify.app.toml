@@ -2,7 +2,7 @@
 
 name = "branch-msbd-app"
 client_id = "2377268e6e57bb7ea9b46fadf7b51563"
-application_url = "https://branch-msbd-app-cee2a8728d5a.herokuapp.com/"
+application_url = "https://silicon-computer-blanket-labels.trycloudflare.com"
 embedded = true
 
 [access_scopes]
@@ -11,10 +11,10 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://branch-msbd-app-cee2a8728d5a.herokuapp.com/auth/callback",
-  "https://branch-msbd-app-cee2a8728d5a.herokuapp.com/auth/shopify/callback",
-  "https://branch-msbd-app-cee2a8728d5a.herokuapp.com/api/auth/callback",
-  "https://branch-msbd-app-cee2a8728d5a.herokuapp.com/.shopify/graphiql/auth/callback"
+  "https://silicon-computer-blanket-labels.trycloudflare.com/auth/callback",
+  "https://silicon-computer-blanket-labels.trycloudflare.com/auth/shopify/callback",
+  "https://silicon-computer-blanket-labels.trycloudflare.com/api/auth/callback",
+  "https://silicon-computer-blanket-labels.trycloudflare.com/.shopify/graphiql/auth/callback"
 ]
 
 [webhooks]
