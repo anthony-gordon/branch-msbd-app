@@ -17,32 +17,6 @@ import { createInterface } from 'node:readline'
 
 
 async function startBulkOperation(admin){
-//     const response = await admin.graphql(`
-//     {
-//         collectionByHandle(handle: "bistro") {
-//             products(first: 3) {
-//             nodes {
-//                 variants(first: 4) {
-//                 nodes {
-//                     metafields(namespace: "variant", first: 4) {
-//                     nodes {
-//                         key
-//                         value
-//                     }
-//                     }
-//                     id
-//                     title
-//                 }
-//                 }
-//                 handle
-//                 id
-//                 title
-//                 tags
-//             }
-//             }
-//         }
-//     }
-// `);
 
 const response = await admin.graphql(`
 mutation {
@@ -236,7 +210,7 @@ export async function loader({ request }) {
 
         let dataBaseObjectAllProducts = formatCurrentProductData(formattedProducts);
 
-        console.log('dataBaseObjectAllProducts', dataBaseObjectAllProducts)
+        // console.log('dataBaseObjectAllProducts', dataBaseObjectAllProducts)
 
         let dbShipDateStrings = returnDBShipDateStrings(dbShipDateData);
         let currentShipDateStrings = returnCurrentShipDateStrings(dataBaseObjectAllProducts);
@@ -278,10 +252,10 @@ export async function loader({ request }) {
 
         function handleUpdateDataBaseClick(){
             dataBaseObjectAllProducts['submission_type'] = JSON.stringify({submission_type: 'update_db'});
-            console.log('dataBaseObjectAllProducts', dataBaseObjectAllProducts)
             
+          console.log('dataBaseObjectAllProducts', dataBaseObjectAllProducts);
 
-            submit(dataBaseObjectAllProducts, { method: "post" });
+          submit(dataBaseObjectAllProducts, { method: "post" });
         }
     return (
         <div>

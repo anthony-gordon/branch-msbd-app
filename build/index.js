@@ -220,7 +220,7 @@ function updateBundleProductValues(bundleProductsArray, dataBaseObjectAllProduct
   bundleProductsArray.forEach((bundleProductVariantId) => {
     let furthestData = {
       processingTime: 0,
-      dateAvailable: "2020-01-01"
+      dateAvailable: `${(/* @__PURE__ */ new Date()).toLocaleDateString("en-US").split("/").reverse().join("-")}`
     }, processingTimeArray = [], dateAvailableArray = [], bundleProductData = JSON.parse(dataBaseObjectAllProducts[`${bundleProductVariantId}`]);
     JSON.parse(JSON.parse(bundleProductData.bundleProducts)).forEach((bundleProductConstituentData) => {
       let constituentProcessingTime = JSON.parse(dataBaseObjectAllProducts[`gid://shopify/ProductVariant/${bundleProductConstituentData.variantId}`]).processingTime, constituentDateAvailable = JSON.parse(dataBaseObjectAllProducts[`gid://shopify/ProductVariant/${bundleProductConstituentData.variantId}`]).dateAvailable;
@@ -237,10 +237,9 @@ function updateBundleProductValues(bundleProductsArray, dataBaseObjectAllProduct
   });
 }
 function formatCurrentProductData(currentProductData) {
-  let dataBaseObjectAllProducts = {}, bundleProductsArray = [];
+  let currentDateString = (/* @__PURE__ */ new Date()).toLocaleDateString("en-US").split("/").reverse().join("-"), dataBaseObjectAllProducts = {}, bundleProductsArray = [];
   for (let [key, arrayRow] of Object.entries(currentProductData))
     for (let [key2, variant] of Object.entries(arrayRow.variants)) {
-      console.log("variant", variant);
       let tags = arrayRow.tags.map((v) => v.toLowerCase()), dataBaseUpdateObject = {
         productId: arrayRow.id,
         productVariantId: variant.id,
@@ -251,7 +250,7 @@ function formatCurrentProductData(currentProductData) {
         b2bProduct: !!tags.includes("b2b"),
         bundleProduct: !!tags.includes("bundle")
       };
-      dataBaseUpdateObject.processingTime = variant.processing_time ? variant.processing_time : "2", dataBaseUpdateObject.dateAvailable = variant.date_available ? variant.date_available : "2020-01-01", dataBaseUpdateObject.overrideMessage = variant.shipping ? variant.shipping : "", dataBaseUpdateObject.bundleProducts = variant.bundle_products ? variant.bundle_products : "", dataBaseUpdateObject.shipDateMessage = variant.ship_date_string ? variant.ship_date_string : "", dataBaseObjectAllProducts[`${variant.id}`] = JSON.stringify(dataBaseUpdateObject);
+      dataBaseUpdateObject.processingTime = variant.processing_time ? variant.processing_time : "2", dataBaseUpdateObject.dateAvailable = variant.date_available ? variant.date_available : `${currentDateString}`, dataBaseUpdateObject.overrideMessage = variant.shipping ? variant.shipping : "", dataBaseUpdateObject.bundleProducts = variant.bundle_products ? variant.bundle_products : "", dataBaseUpdateObject.shipDateMessage = variant.ship_date_string ? variant.ship_date_string : "", dataBaseObjectAllProducts[`${variant.id}`] = JSON.stringify(dataBaseUpdateObject);
     }
   return bundleProductsArray.length > 0 && updateBundleProductValues(bundleProductsArray, dataBaseObjectAllProducts), dataBaseObjectAllProducts;
 }
@@ -278,7 +277,6 @@ function findParentProductId(variantId, formattedProducts) {
   return id;
 }
 function formatBulkDataOperationJSON(productsObject) {
-  console.log(productsObject);
   let formattedProducts = {};
   for (let [key, value] of Object.entries(productsObject))
     if (!value.__parentId)
@@ -402,8 +400,7 @@ async function dbUpdate(array) {
       },
       update: {
         processingTime: `${processingTime}`,
-        dateAvailable,
-        shipDateMessage: "",
+        dateAvailable: `${dateAvailable}`,
         bundleProduct,
         b2bProduct,
         updated: currentTime,
@@ -538,9 +535,7 @@ async function action({ request, params }) {
   return submission_type == "update_db" ? await dbUpdate(array) : submission_type == "update_metafields" && await metafieldsUpdate(array, admin), (0, import_node3.redirect)("/app/variantshipdatedata");
 }
 function variantShipDataDataList() {
-  let loadData = (0, import_react3.useLoaderData)(), bulkOperationData = loadData.bulkOperation, dbShipDateData = loadData.dbProducts, url = loadData.url.data.node.url, products = loadData.products, formattedProducts = formatBulkDataOperationJSON(products), dataBaseObjectAllProducts = formatCurrentProductData(formattedProducts);
-  console.log("dataBaseObjectAllProducts", dataBaseObjectAllProducts);
-  let dbShipDateStrings = returnDBShipDateStrings(dbShipDateData), currentShipDateStrings = returnCurrentShipDateStrings(dataBaseObjectAllProducts), variantsToUpdateShipDateStrings = returnVariantsToUpdateShipDateStrings(dbShipDateStrings, currentShipDateStrings), submit = (0, import_react3.useSubmit)();
+  let loadData = (0, import_react3.useLoaderData)(), bulkOperationData = loadData.bulkOperation, dbShipDateData = loadData.dbProducts, url = loadData.url.data.node.url, products = loadData.products, formattedProducts = formatBulkDataOperationJSON(products), dataBaseObjectAllProducts = formatCurrentProductData(formattedProducts), dbShipDateStrings = returnDBShipDateStrings(dbShipDateData), currentShipDateStrings = returnCurrentShipDateStrings(dataBaseObjectAllProducts), variantsToUpdateShipDateStrings = returnVariantsToUpdateShipDateStrings(dbShipDateStrings, currentShipDateStrings), submit = (0, import_react3.useSubmit)();
   function handleUpdateMetafieldsClick() {
     variantsToUpdateShipDateStrings.submission_type = JSON.stringify({ submission_type: "update_metafields" }), console.log("variantsToUpdateShipDateStrings", variantsToUpdateShipDateStrings);
     let formData = new FormData();
@@ -558,17 +553,17 @@ function variantShipDataDataList() {
   return /* @__PURE__ */ (0, import_jsx_dev_runtime3.jsxDEV)("div", { children: [
     /* @__PURE__ */ (0, import_jsx_dev_runtime3.jsxDEV)("button", { onClick: () => handleUpdateDataBaseClick(), children: "Submit" }, void 0, !1, {
       fileName: "app/routes/app.variantshipdatedata.jsx",
-      lineNumber: 288,
+      lineNumber: 262,
       columnNumber: 13
     }, this),
     /* @__PURE__ */ (0, import_jsx_dev_runtime3.jsxDEV)("button", { onClick: () => handleUpdateMetafieldsClick(variantsToUpdateShipDateStrings), children: "Update metafields" }, void 0, !1, {
       fileName: "app/routes/app.variantshipdatedata.jsx",
-      lineNumber: 289,
+      lineNumber: 263,
       columnNumber: 13
     }, this)
   ] }, void 0, !0, {
     fileName: "app/routes/app.variantshipdatedata.jsx",
-    lineNumber: 287,
+    lineNumber: 261,
     columnNumber: 9
   }, this);
 }
@@ -1687,7 +1682,7 @@ function ErrorBoundary() {
 var headers = (headersArgs) => import_server4.boundary.headers(headersArgs);
 
 // server-assets-manifest:@remix-run/dev/assets-manifest
-var assets_manifest_default = { entry: { module: "/build/entry.client-STYRVQSO.js", imports: ["/build/_shared/chunk-ZWGWGGVF.js", "/build/_shared/chunk-GIAAE3CH.js", "/build/_shared/chunk-FROLWTDC.js", "/build/_shared/chunk-XU7DNSPJ.js", "/build/_shared/chunk-BOXFZXVX.js", "/build/_shared/chunk-DYYXLKDN.js", "/build/_shared/chunk-UWV35TSL.js", "/build/_shared/chunk-PNG5AS42.js"] }, routes: { root: { id: "root", parentId: void 0, path: "", index: void 0, caseSensitive: void 0, module: "/build/root-V2NJDACA.js", imports: void 0, hasAction: !1, hasLoader: !1, hasErrorBoundary: !1 }, "routes/_index": { id: "routes/_index", parentId: "root", path: void 0, index: !0, caseSensitive: void 0, module: "/build/routes/_index-YA4QCRWA.js", imports: ["/build/_shared/chunk-3GJP5LZF.js", "/build/_shared/chunk-G7CHZRZX.js"], hasAction: !1, hasLoader: !0, hasErrorBoundary: !1 }, "routes/app": { id: "routes/app", parentId: "root", path: "app", index: void 0, caseSensitive: void 0, module: "/build/routes/app-XUKZDYQT.js", imports: ["/build/_shared/chunk-NMZL6IDN.js", "/build/_shared/chunk-MIBD2XN6.js", "/build/_shared/chunk-SU66BP3D.js", "/build/_shared/chunk-OIJQMBPJ.js", "/build/_shared/chunk-G7CHZRZX.js"], hasAction: !1, hasLoader: !0, hasErrorBoundary: !0 }, "routes/app._index": { id: "routes/app._index", parentId: "routes/app", path: void 0, index: !0, caseSensitive: void 0, module: "/build/routes/app._index-4LZLMMYX.js", imports: ["/build/_shared/chunk-3EYAZZDZ.js"], hasAction: !1, hasLoader: !0, hasErrorBoundary: !1 }, "routes/app.additional": { id: "routes/app.additional", parentId: "routes/app", path: "additional", index: void 0, caseSensitive: void 0, module: "/build/routes/app.additional-B63EHRTR.js", imports: void 0, hasAction: !1, hasLoader: !1, hasErrorBoundary: !1 }, "routes/app.qrcodes.$id": { id: "routes/app.qrcodes.$id", parentId: "routes/app", path: "qrcodes/:id", index: void 0, caseSensitive: void 0, module: "/build/routes/app.qrcodes.$id-PDYJMLGT.js", imports: ["/build/_shared/chunk-DXZPNPAJ.js", "/build/_shared/chunk-3EYAZZDZ.js"], hasAction: !0, hasLoader: !0, hasErrorBoundary: !1 }, "routes/app.variantshipdatedata": { id: "routes/app.variantshipdatedata", parentId: "routes/app", path: "variantshipdatedata", index: void 0, caseSensitive: void 0, module: "/build/routes/app.variantshipdatedata-U74AANYU.js", imports: void 0, hasAction: !0, hasLoader: !0, hasErrorBoundary: !1 }, "routes/auth.$": { id: "routes/auth.$", parentId: "root", path: "auth/*", index: void 0, caseSensitive: void 0, module: "/build/routes/auth.$-4B5WQABX.js", imports: void 0, hasAction: !1, hasLoader: !0, hasErrorBoundary: !1 }, "routes/auth.login": { id: "routes/auth.login", parentId: "root", path: "auth/login", index: void 0, caseSensitive: void 0, module: "/build/routes/auth.login-BUXUUBN6.js", imports: ["/build/_shared/chunk-3GJP5LZF.js", "/build/_shared/chunk-MIBD2XN6.js", "/build/_shared/chunk-OIJQMBPJ.js", "/build/_shared/chunk-G7CHZRZX.js"], hasAction: !0, hasLoader: !0, hasErrorBoundary: !1 }, "routes/qrcodes.$id": { id: "routes/qrcodes.$id", parentId: "root", path: "qrcodes/:id", index: void 0, caseSensitive: void 0, module: "/build/routes/qrcodes.$id-WDPZA2WS.js", imports: ["/build/_shared/chunk-DXZPNPAJ.js", "/build/_shared/chunk-G7CHZRZX.js"], hasAction: !1, hasLoader: !0, hasErrorBoundary: !1 }, "routes/qrcodes.$id.scan": { id: "routes/qrcodes.$id.scan", parentId: "routes/qrcodes.$id", path: "scan", index: void 0, caseSensitive: void 0, module: "/build/routes/qrcodes.$id.scan-2CY3SXY7.js", imports: void 0, hasAction: !1, hasLoader: !0, hasErrorBoundary: !1 }, "routes/webhooks": { id: "routes/webhooks", parentId: "root", path: "webhooks", index: void 0, caseSensitive: void 0, module: "/build/routes/webhooks-JFV2P4HI.js", imports: void 0, hasAction: !0, hasLoader: !1, hasErrorBoundary: !1 } }, version: "dba8e49a", hmr: { runtime: "/build/_shared/chunk-DYYXLKDN.js", timestamp: 1700127980207 }, url: "/build/manifest-DBA8E49A.js" };
+var assets_manifest_default = { entry: { module: "/build/entry.client-STYRVQSO.js", imports: ["/build/_shared/chunk-ZWGWGGVF.js", "/build/_shared/chunk-GIAAE3CH.js", "/build/_shared/chunk-FROLWTDC.js", "/build/_shared/chunk-XU7DNSPJ.js", "/build/_shared/chunk-BOXFZXVX.js", "/build/_shared/chunk-DYYXLKDN.js", "/build/_shared/chunk-UWV35TSL.js", "/build/_shared/chunk-PNG5AS42.js"] }, routes: { root: { id: "root", parentId: void 0, path: "", index: void 0, caseSensitive: void 0, module: "/build/root-V2NJDACA.js", imports: void 0, hasAction: !1, hasLoader: !1, hasErrorBoundary: !1 }, "routes/_index": { id: "routes/_index", parentId: "root", path: void 0, index: !0, caseSensitive: void 0, module: "/build/routes/_index-YA4QCRWA.js", imports: ["/build/_shared/chunk-3GJP5LZF.js", "/build/_shared/chunk-G7CHZRZX.js"], hasAction: !1, hasLoader: !0, hasErrorBoundary: !1 }, "routes/app": { id: "routes/app", parentId: "root", path: "app", index: void 0, caseSensitive: void 0, module: "/build/routes/app-XUKZDYQT.js", imports: ["/build/_shared/chunk-NMZL6IDN.js", "/build/_shared/chunk-MIBD2XN6.js", "/build/_shared/chunk-SU66BP3D.js", "/build/_shared/chunk-OIJQMBPJ.js", "/build/_shared/chunk-G7CHZRZX.js"], hasAction: !1, hasLoader: !0, hasErrorBoundary: !0 }, "routes/app._index": { id: "routes/app._index", parentId: "routes/app", path: void 0, index: !0, caseSensitive: void 0, module: "/build/routes/app._index-4LZLMMYX.js", imports: ["/build/_shared/chunk-3EYAZZDZ.js"], hasAction: !1, hasLoader: !0, hasErrorBoundary: !1 }, "routes/app.additional": { id: "routes/app.additional", parentId: "routes/app", path: "additional", index: void 0, caseSensitive: void 0, module: "/build/routes/app.additional-B63EHRTR.js", imports: void 0, hasAction: !1, hasLoader: !1, hasErrorBoundary: !1 }, "routes/app.qrcodes.$id": { id: "routes/app.qrcodes.$id", parentId: "routes/app", path: "qrcodes/:id", index: void 0, caseSensitive: void 0, module: "/build/routes/app.qrcodes.$id-PDYJMLGT.js", imports: ["/build/_shared/chunk-DXZPNPAJ.js", "/build/_shared/chunk-3EYAZZDZ.js"], hasAction: !0, hasLoader: !0, hasErrorBoundary: !1 }, "routes/app.variantshipdatedata": { id: "routes/app.variantshipdatedata", parentId: "routes/app", path: "variantshipdatedata", index: void 0, caseSensitive: void 0, module: "/build/routes/app.variantshipdatedata-5DFSIQG3.js", imports: void 0, hasAction: !0, hasLoader: !0, hasErrorBoundary: !1 }, "routes/auth.$": { id: "routes/auth.$", parentId: "root", path: "auth/*", index: void 0, caseSensitive: void 0, module: "/build/routes/auth.$-4B5WQABX.js", imports: void 0, hasAction: !1, hasLoader: !0, hasErrorBoundary: !1 }, "routes/auth.login": { id: "routes/auth.login", parentId: "root", path: "auth/login", index: void 0, caseSensitive: void 0, module: "/build/routes/auth.login-BUXUUBN6.js", imports: ["/build/_shared/chunk-3GJP5LZF.js", "/build/_shared/chunk-MIBD2XN6.js", "/build/_shared/chunk-OIJQMBPJ.js", "/build/_shared/chunk-G7CHZRZX.js"], hasAction: !0, hasLoader: !0, hasErrorBoundary: !1 }, "routes/qrcodes.$id": { id: "routes/qrcodes.$id", parentId: "root", path: "qrcodes/:id", index: void 0, caseSensitive: void 0, module: "/build/routes/qrcodes.$id-WDPZA2WS.js", imports: ["/build/_shared/chunk-DXZPNPAJ.js", "/build/_shared/chunk-G7CHZRZX.js"], hasAction: !1, hasLoader: !0, hasErrorBoundary: !1 }, "routes/qrcodes.$id.scan": { id: "routes/qrcodes.$id.scan", parentId: "routes/qrcodes.$id", path: "scan", index: void 0, caseSensitive: void 0, module: "/build/routes/qrcodes.$id.scan-2CY3SXY7.js", imports: void 0, hasAction: !1, hasLoader: !0, hasErrorBoundary: !1 }, "routes/webhooks": { id: "routes/webhooks", parentId: "root", path: "webhooks", index: void 0, caseSensitive: void 0, module: "/build/routes/webhooks-JFV2P4HI.js", imports: void 0, hasAction: !0, hasLoader: !1, hasErrorBoundary: !1 } }, version: "39e246e8", hmr: { runtime: "/build/_shared/chunk-DYYXLKDN.js", timestamp: 1700130118243 }, url: "/build/manifest-39E246E8.js" };
 
 // server-entry-module:@remix-run/dev/server-build
 var mode = "development", assetsBuildDirectory = "public/build", future = { v3_fetcherPersist: !1 }, publicPath = "/build/", entry = { module: entry_server_exports }, routes = {

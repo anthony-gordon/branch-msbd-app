@@ -62,8 +62,7 @@ export async function metafieldsUpdate(array, admin){
             },
             update: {
                 processingTime: `${processingTime}`,
-                dateAvailable: dateAvailable,
-                shipDateMessage: '',
+                dateAvailable: `${dateAvailable}`,
                 bundleProduct: bundleProduct,
                 b2bProduct: b2bProduct,
                 updated: currentTime,

@@ -10,9 +10,13 @@ export function returnDBShipDateStrings(dbData){
 
   function updateBundleProductValues(bundleProductsArray, dataBaseObjectAllProducts){
     bundleProductsArray.forEach((bundleProductVariantId) => {
+
+        let currentDate = new Date();
+        let currentDateString = currentDate.toLocaleDateString("en-US").split('/').reverse().join('-');
+
         let furthestData = {
             processingTime: 0,
-            dateAvailable: '2020-01-01'
+            dateAvailable: `${currentDateString}`
         }
 
         let processingTimeArray = [];
@@ -51,11 +55,14 @@ export function returnDBShipDateStrings(dbData){
   }
 
   export function formatCurrentProductData(currentProductData){
+    let currentDate = new Date();
+    let currentDateString = currentDate.toLocaleDateString("en-US").split('/').reverse().join('-');
+
+    
             let dataBaseObjectAllProducts = {};
             let bundleProductsArray = [];
             for (const [key, arrayRow] of Object.entries(currentProductData)) {
                 for (const [key, variant] of Object.entries(arrayRow.variants)) {
-                    console.log('variant', variant)
                         let tags = arrayRow.tags.map(v => v.toLowerCase())
                         let dataBaseUpdateObject = {
                             productId: arrayRow.id,
@@ -69,7 +76,7 @@ export function returnDBShipDateStrings(dbData){
                         };
     
                         dataBaseUpdateObject['processingTime'] = variant["processing_time"] ? variant["processing_time"] : '2';
-                        dataBaseUpdateObject['dateAvailable'] = variant["date_available"] ? variant["date_available"] : '2020-01-01';
+                        dataBaseUpdateObject['dateAvailable'] = variant["date_available"] ? variant["date_available"] : `${currentDateString}`;
                         dataBaseUpdateObject['overrideMessage'] = variant["shipping"] ? variant["shipping"] : '';
                         dataBaseUpdateObject['bundleProducts'] = variant["bundle_products"] ? variant["bundle_products"] : '';
                         dataBaseUpdateObject['shipDateMessage'] = variant["ship_date_string"] ? variant["ship_date_string"] : '';
@@ -121,8 +128,6 @@ export function returnDBShipDateStrings(dbData){
   }
 
   export function formatBulkDataOperationJSON(productsObject){
-    console.log(productsObject)
-
     let formattedProducts = {};
 
     for (const [key, value] of Object.entries(productsObject)) {
