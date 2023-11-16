@@ -20,3 +20,19 @@ model Session {
   accessToken String
   userId      BigInt?
 }
+
+model variantShipDateData {
+  id               Int      @id @default(autoincrement())
+  title            String
+  shop             String
+  productId        String
+  productHandle    String
+  productVariantId String   @unique
+  dateAvailable    String
+  processingTime   String
+  shipDateMessage  String
+  overrideMessage  String
+  b2bProduct       Boolean  @default(false)
+  bundleProduct    Boolean  @default(false)
+  updated          DateTime @default(now())
+}

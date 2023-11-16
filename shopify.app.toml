@@ -1,3 +1,28 @@
-# This file stores configurations for your Shopify app.
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
+name = "branch-msbd-app"
+client_id = "2377268e6e57bb7ea9b46fadf7b51563"
+application_url = "https://though-glory-laws-please.trycloudflare.com"
+embedded = true
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
 scopes = "write_products"
+
+[auth]
+redirect_urls = [
+  "https://though-glory-laws-please.trycloudflare.com/auth/callback",
+  "https://though-glory-laws-please.trycloudflare.com/auth/shopify/callback",
+  "https://though-glory-laws-please.trycloudflare.com/api/auth/callback",
+  "https://though-glory-laws-please.trycloudflare.com/.shopify/graphiql/auth/callback"
+]
+
+[webhooks]
+api_version = "2023-10"
+
+[pos]
+embedded = false
+
+[build]
+automatically_update_urls_on_dev = true
+dev_store_url = "anthony-branch-dev-store-2022.myshopify.com"
