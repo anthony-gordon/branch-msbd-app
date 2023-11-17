@@ -47,10 +47,6 @@ export async function action({ request, params }) {
   const { session } = await authenticate.admin(request);
   const { shop } = session;
 
-  console.log(
-    'action!!!!'
-  )
-
   /** @type {any} */
   const data = {
     ...Object.fromEntries(await request.formData()),
@@ -124,7 +120,6 @@ export default function QRCodeForm() {
     };
 
     setCleanFormState({ ...formState });
-    console.log('data', data);
 
     // submit(data, { method: "post" });
   }

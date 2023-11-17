@@ -4,29 +4,34 @@ import polarisStyles from "@shopify/polaris/build/esm/styles.css";
 import { boundary } from "@shopify/shopify-app-remix/server";
 import { AppProvider } from "@shopify/shopify-app-remix/react";
 import { authenticate } from "../shopify.server";
+import { MyContextProvider } from '../MyContext';
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
 export const loader = async ({ request }) => {
   await authenticate.admin(request);
 
-  return json({ apiKey: process.env.SHOPIFY_API_KEY || "" });
+  return json({ apiKey: process.env.SHOPIFY_API_KEY || ""});
 };
 
 export default function App() {
-  const { apiKey } = useLoaderData();
+  const loadData = useLoaderData();
+  const apiKey = loadData.apiKey
 
   return (
+    <MyContextProvider>
     <AppProvider isEmbeddedApp apiKey={apiKey}>
-      <ui-nav-menu>
-        <Link to="/app" rel="home">
-          Home
-        </Link>
-        <Link to="/app/settings">Settings</Link>
-        <Link to="/app/variantshipdatedata">Variant data</Link>
-      </ui-nav-menu>
-      <Outlet />
+        <ui-nav-menu>
+          <Link to="/app" rel="home">
+            Home
+          </Link>
+          <Link to="/app/settings">Settings</Link>
+          <Link to="/app/variantshipdatedata">Variant data</Link>
+        </ui-nav-menu>
+        <Outlet />
     </AppProvider>
+    </MyContextProvider>
+
   );
 }
 

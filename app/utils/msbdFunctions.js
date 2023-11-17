@@ -1,12 +1,12 @@
 
-function generateShipMessage(variantData){
-    let buffer = 5;
-    let dtcProcessingTimeMessage = "Ships for free #processing_time_description#.";
-    let dtcDateAvailableMessage = "Ships for free #date_available_description#.";
-    let b2bProcessingTimeMessage = "Ships with white glove installation #processing_time_description#.";
-    let b2bDateAvailableMessage = "Ships with white glove installation #date_available_description#.";
-    let dtcDefaultShippingRange = 1;
-    let b2bDefaultShippingRange = 1;
+function generateShipMessage(variantData, settings){
+    let buffer = parseInt(settings.buffer);
+    let dtcProcessingTimeMessage = settings.dtcProcessingTimeMessage;
+    let dtcDateAvailableMessage = settings.dtcDateAvailableMessage;
+    let b2bProcessingTimeMessage = settings.b2bProcessingTimeMessage;
+    let b2bDateAvailableMessage = settings.b2bDateAvailableMessage;
+    let dtcDefaultShippingRange = parseInt(settings.dtcDefaultShippingRange);
+    let b2bDefaultShippingRange = parseInt(settings.b2bDefaultShippingRange);
     let message = '';
 
     let shippingProcessingMessage = '';
@@ -78,11 +78,11 @@ function generateShipMessage(variantData){
     return shippingProcessingMessage
 }
 
-export function returnCurrentShipDateStrings(currentData){
+export function returnCurrentShipDateStrings(currentData, settings){
     let currentShipDateStrings = {};
 
     for (const [key, value] of Object.entries(currentData)) {
-        let shipMessage = generateShipMessage(JSON.parse(value));
+        let shipMessage = generateShipMessage(JSON.parse(value), settings);
         currentShipDateStrings[`${key}`] = shipMessage;
       }
 

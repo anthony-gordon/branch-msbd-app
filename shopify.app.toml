@@ -2,7 +2,7 @@
 
 name = "branch-msbd-app"
 client_id = "2377268e6e57bb7ea9b46fadf7b51563"
-application_url = "https://silicon-computer-blanket-labels.trycloudflare.com"
+application_url = "https://resistance-pirates-assume-home.trycloudflare.com"
 embedded = true
 
 [access_scopes]
@@ -11,10 +11,10 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://silicon-computer-blanket-labels.trycloudflare.com/auth/callback",
-  "https://silicon-computer-blanket-labels.trycloudflare.com/auth/shopify/callback",
-  "https://silicon-computer-blanket-labels.trycloudflare.com/api/auth/callback",
-  "https://silicon-computer-blanket-labels.trycloudflare.com/.shopify/graphiql/auth/callback"
+  "https://resistance-pirates-assume-home.trycloudflare.com/auth/callback",
+  "https://resistance-pirates-assume-home.trycloudflare.com/auth/shopify/callback",
+  "https://resistance-pirates-assume-home.trycloudflare.com/api/auth/callback",
+  "https://resistance-pirates-assume-home.trycloudflare.com/.shopify/graphiql/auth/callback"
 ]
 
 [webhooks]

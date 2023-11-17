@@ -54,7 +54,8 @@ export function returnDBShipDateStrings(dbData){
     })
   }
 
-  export function formatCurrentProductData(currentProductData){
+  export function formatCurrentProductData(currentProductData, settings){
+    let defaultProcessingTime = parseInt(settings.defaultProcessingTime)
     let currentDate = new Date();
     let currentDateString = currentDate.toLocaleDateString("en-US").split('/').reverse().join('-');
 
@@ -75,7 +76,7 @@ export function returnDBShipDateStrings(dbData){
                             bundleProduct: tags.includes('bundle') ? true : false,
                         };
     
-                        dataBaseUpdateObject['processingTime'] = variant["processing_time"] ? variant["processing_time"] : '2';
+                        dataBaseUpdateObject['processingTime'] = variant["processing_time"] ? variant["processing_time"] : `${defaultProcessingTime}`;
                         dataBaseUpdateObject['dateAvailable'] = variant["date_available"] ? variant["date_available"] : `${currentDateString}`;
                         dataBaseUpdateObject['overrideMessage'] = variant["shipping"] ? variant["shipping"] : '';
                         dataBaseUpdateObject['bundleProducts'] = variant["bundle_products"] ? variant["bundle_products"] : '';

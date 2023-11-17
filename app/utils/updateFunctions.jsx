@@ -88,3 +88,25 @@ export async function metafieldsUpdate(array, admin){
 
     await Promise.all(promises);
   }
+
+
+export async function settingsUpdate(data){
+    const {buffer, defaultProcessingTime, dtcDateAvailableMessage, dtcProcessingTimeMessage, dtcDefaultShippingRange,b2bDefaultShippingRange,  b2bDateAvailableMessage, b2bProcessingTimeMessage} = data;
+    await db.settings.update({ 
+    where: 
+        { 
+            id: 1 
+        }, 
+    data:
+        {
+            buffer: parseInt(buffer), 
+            defaultProcessingTime: parseInt(defaultProcessingTime), 
+            dtcDateAvailableMessage: dtcDateAvailableMessage, 
+            dtcProcessingTimeMessage: dtcProcessingTimeMessage, 
+            dtcDefaultShippingRange: parseInt(dtcDefaultShippingRange),
+            b2bDefaultShippingRange: parseInt(b2bDefaultShippingRange),
+            b2bDateAvailableMessage: b2bDateAvailableMessage, 
+            b2bProcessingTimeMessage: b2bProcessingTimeMessage
+        }
+    });
+  }
