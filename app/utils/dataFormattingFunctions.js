@@ -81,7 +81,9 @@ export function returnDBShipDateStrings(dbData){
                         dataBaseUpdateObject['overrideMessage'] = variant["shipping"] ? variant["shipping"] : '';
                         dataBaseUpdateObject['bundleProducts'] = variant["bundle_products"] ? variant["bundle_products"] : '';
                         dataBaseUpdateObject['shipDateMessage'] = variant["ship_date_string"] ? variant["ship_date_string"] : '';
-                
+                        dataBaseUpdateObject['shipDateMessageId'] = variant["ship_date_string_id"] ? variant["ship_date_string_id"] : '';
+
+
                         dataBaseObjectAllProducts[`${variant.id}`] = JSON.stringify(dataBaseUpdateObject);
                     
                 }
@@ -139,9 +141,36 @@ export function returnDBShipDateStrings(dbData){
                 formattedProducts[`${value[`__parentId`]}`]['variants'][`${value['id']}`] = value
             } else if(value[`__parentId`] && value[`__parentId`].includes('/ProductVariant/')) {
                 let parentProductId = findParentProductId(value[`__parentId`], formattedProducts);
-                formattedProducts[`${parentProductId}`]['variants'][`${value["__parentId"]}`][`${value["key"]}`] = value['value']
+                formattedProducts[`${parentProductId}`]['variants'][`${value["__parentId"]}`][`${value["key"]}`] = value['value'];
+                formattedProducts[`${parentProductId}`]['variants'][`${value["__parentId"]}`][`${value["key"]}_id`] = value['id'];
             }
           }
 
     return formattedProducts
   }
+
+  export function formatDbProducts(dbProducts){
+    let formattedDbProducts = {};
+
+    for (const [key, value] of Object.entries(dbProducts)) {
+        if(!formattedDbProducts[`${value.productId}`]){ 
+          formattedDbProducts[`${value.productId}`] = {};
+          formattedDbProducts[`${value.productId}`][`${value.productVariantId}`] = value;
+            } else {
+              formattedDbProducts[`${value.productId}`][`${value.productVariantId}`] = value;
+            }
+           }
+
+    return formattedDbProducts
+  }
+
+export function returnMetafieldIds(currentData){
+  let metafieldIds = {};
+
+  for (const [key, value] of Object.entries(currentData)) {
+    metafieldIds[`${key}`] = JSON.parse(value)['shipDateMessageId'];
+  }
+
+
+  return metafieldIds
+}

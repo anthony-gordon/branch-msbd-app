@@ -5,21 +5,43 @@ import { boundary } from "@shopify/shopify-app-remix/server";
 import { AppProvider } from "@shopify/shopify-app-remix/react";
 import { authenticate } from "../shopify.server";
 import { MyContextProvider } from '../MyContext';
+import { fetchDBShipDateData, fetchSettings } from "../models/variantShipDateData.server";
+import { useState, useContext, useEffect } from "react"
+import { MyContext } from '../MyContext';
+import { formatDbProducts } from "../utils/dataFormattingFunctions"
+
+
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
+
 
 export const loader = async ({ request }) => {
   await authenticate.admin(request);
 
-  return json({ apiKey: process.env.SHOPIFY_API_KEY || ""});
+  const [dataBaseProducts, settingsData] = await Promise.all([
+    fetchDBShipDateData(),
+    fetchSettings()
+])
+
+  return json({ apiKey: process.env.SHOPIFY_API_KEY || "", dataBaseProducts, settingsData});
 };
 
 export default function App() {
+  const { setSettings } = useContext(MyContext);
+  const { setDbProducts } = useContext(MyContext);
+  const { setDbProductsFormatted } = useContext(MyContext);
+
+
   const loadData = useLoaderData();
-  const apiKey = loadData.apiKey
+  const {apiKey, dataBaseProducts, settingsData} = loadData
+
+  useEffect(() => {
+    setDbProducts(dataBaseProducts);
+    setSettings(settingsData);
+    setDbProductsFormatted(formatDbProducts(dataBaseProducts));
+  }, []);
 
   return (
-    <MyContextProvider>
     <AppProvider isEmbeddedApp apiKey={apiKey}>
         <ui-nav-menu>
           <Link to="/app" rel="home">
@@ -30,8 +52,6 @@ export default function App() {
         </ui-nav-menu>
         <Outlet />
     </AppProvider>
-    </MyContextProvider>
-
   );
 }
 

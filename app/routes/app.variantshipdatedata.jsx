@@ -1,20 +1,23 @@
 import { json, redirect } from "@remix-run/node";
 import {
     useLoaderData,
+    useActionData,
     useSubmit,
+    useNavigation
   } from "@remix-run/react";
 import shopify from '~/shopify.server';
 
 import { fetchDBShipDateData, fetchSettings } from "../models/variantShipDateData.server";
 import db from "../db.server";
 import { useState, useContext, useEffect } from 'react'
-import { returnDBShipDateStrings, formatCurrentProductData, returnVariantsToUpdateShipDateStrings, formatBulkDataOperationJSON } from "../utils/dataFormattingFunctions"
+import { returnDBShipDateStrings, returnMetafieldIds, formatCurrentProductData, returnVariantsToUpdateShipDateStrings, formatBulkDataOperationJSON } from "../utils/dataFormattingFunctions"
 import { returnCurrentShipDateStrings } from "../utils/msbdFunctions"
 import { metafieldsUpdate, dbUpdate } from "../utils/updateFunctions"
 import  axios  from "axios";
 import { createInterface } from 'node:readline'
 import { MyContext } from '../MyContext';
 import ProductsView from '../components/ProductsView'
+
 
 async function startBulkOperation(admin){
 
@@ -40,6 +43,7 @@ mutation {
                                 node {
                                     key
                                     value
+                                    id
                                 }
                             }
                         }
@@ -73,12 +77,6 @@ const {
 console.log('response', response)
 
 return bulkOperation
-}
-
-async function fetchDbProducts(){
-    let dbProducts = fetchDBShipDateData();
-
-    return dbProducts
 }
 
 const poll = async function (fn, fnCondition, ms) {
@@ -149,120 +147,115 @@ async function fetchProductsFromUrl(url){
     return object
 }
 
-export async function loader({ request }) {
+  export async function action({ request, params }){
     const { admin } = await shopify.authenticate.admin(request);
 
-    const [bulkOperation, dbProducts, settings] = await Promise.all([
-        startBulkOperation(admin),
-        fetchDbProducts(),
-        fetchSettings()
+    const [bulkOperation] = await Promise.all([
+        startBulkOperation(admin)
     ])
 
     const url = await fetchBulkOperationData(bulkOperation, admin);
     const products = await fetchProductsFromUrl(url.data.node.url)
 
-    return json({bulkOperation, dbProducts, url, products, settings});
-  }
-
-  
-
-  export async function action({ request, params }){
-    const { admin } = await shopify.authenticate.admin(request);
-
     const data = await request.formData();
 
     let array = [];
     let submission_type = '';
+    let settings = {};
+    let dbShipDateData = {}
 
     for (var pair of data.entries()) {
         if(JSON.parse(pair[1])['submission_type']){
             submission_type = JSON.parse(pair[1])['submission_type'];
-        } else {
-            array.push(JSON.parse(pair[1]));
         }
+        if(JSON.parse(pair[1])['settings']){
+            settings = JSON.parse(pair[1])['settings'];
+        }
+        if(JSON.parse(pair[1])['db_products']){
+          dbShipDateData = JSON.parse(pair[1])['db_products'];
+        }        
     }
 
+    const formattedProducts = formatBulkDataOperationJSON(products);
+    let dataBaseObjectAllProducts = formatCurrentProductData(formattedProducts, settings);
+    let currentProductsArray = []
+    for (const [key, value] of Object.entries(dataBaseObjectAllProducts)) {
+      currentProductsArray.push(JSON.parse(value))
+    }
     if(submission_type == 'update_db'){
-        await dbUpdate(array);
+        await dbUpdate(currentProductsArray);
+        return json({dataBaseObjectAllProducts, currentProductsArray})
     } else if (submission_type == 'update_metafields'){
-        await metafieldsUpdate(array, admin);
+      
+      let dbShipDateStrings = returnDBShipDateStrings(dbShipDateData);
+      let currentShipDateStrings = returnCurrentShipDateStrings(dataBaseObjectAllProducts, settings);
+      let metafieldIds = returnMetafieldIds(dataBaseObjectAllProducts);
+      let variantsToUpdateShipDateStrings = returnVariantsToUpdateShipDateStrings(dbShipDateStrings, currentShipDateStrings)
+
+      for (const [key, value] of Object.entries(variantsToUpdateShipDateStrings)) {
+        array.push(JSON.parse(value))
+      }
+      
+      const mfUpdate = await metafieldsUpdate(array, admin, metafieldIds);
+      const dbUpdateToken = await dbUpdate(currentProductsArray);
+
+
+      return json({formattedProducts, 
+        dataBaseObjectAllProducts, 
+        dbShipDateStrings, 
+        currentShipDateStrings, 
+        variantsToUpdateShipDateStrings, 
+        submission_type,
+        settings,
+        array,
+        dbShipDateData,
+        mfUpdate,
+        metafieldIds,
+        dbUpdateToken})
     }
     
   return redirect(`/app/variantshipdatedata`);
   }
 
-    export default function variantShipDataDataList(){
+    export default function variantShipDataDataList(){        
+        const { dbProducts, setDbProducts } = useContext(MyContext);
+        const { settings, setSettings } = useContext(MyContext);
+        const { updating, setUpdating } = useContext(MyContext);
 
-      useEffect(() => {
-       
-      }, []);
+        const actionData = useActionData();
 
-
-        const loadData = useLoaderData();
-        const [currentOffset, setCurrentOffset ] = useState(0);
-        
-        const { allProducts, setAllProducts } = useContext(MyContext);
-        const dbShipDateData = loadData.dbProducts
-        const settings = loadData.settings[0]
-        const products = loadData.products
-        useEffect(()=>{
-          setAllProducts(formattedProducts);
-        }, [])
-        
-        const formattedProducts = formatBulkDataOperationJSON(products);
-
-        let dataBaseObjectAllProducts = formatCurrentProductData(formattedProducts, settings);
-
-        let dbShipDateStrings = returnDBShipDateStrings(dbShipDateData);
-        let currentShipDateStrings = returnCurrentShipDateStrings(dataBaseObjectAllProducts, settings);
-        let variantsToUpdateShipDateStrings = returnVariantsToUpdateShipDateStrings(dbShipDateStrings, currentShipDateStrings)
-
-        console.log('products', formattedProducts)
+        useEffect(() => {
+          if(actionData !== undefined){
+            setUpdating(false)
+          }
+        }, [actionData]);
 
         const submit = useSubmit();
 
         function handleUpdateMetafieldsClick(){
-            variantsToUpdateShipDateStrings['submission_type'] = JSON.stringify({submission_type: 'update_metafields'});
+          setUpdating(true);
+          let submission = {};
+          submission['settings'] = JSON.stringify({settings: settings[0]});
+          submission['submission_type'] = JSON.stringify({submission_type: 'update_metafields'});
+          submission['db_products'] = JSON.stringify({db_products: dbProducts})
 
-            let formData = new FormData();
-
-            Object.keys(variantsToUpdateShipDateStrings).forEach(key => {
-                if (typeof variantsToUpdateShipDateStrings[key] !== 'object') {
-                formData.append(key, variantsToUpdateShipDateStrings[key])
-            }
-                else {
-                    formData.append(key, JSON.stringify(variantsToUpdateShipDateStrings[key]))
-                }
-            })
-
-            let array = [];
-            let submission_type = '';
-
-            for (var pair of formData.entries()) {
-                if(JSON.parse(pair[1])['submission_type']){
-                    submission_type = JSON.parse(pair[1])['submission_type'];
-                } else {
-                    array.push(JSON.parse(pair[1]));
-                }
-            }
-
-            if(array.length > 0){
-                submit(variantsToUpdateShipDateStrings, { method: "post" });
-            }
+          submit(submission, { method: "post" });
         }
 
         function handleUpdateDataBaseClick(){
-          dataBaseObjectAllProducts['submission_type'] = JSON.stringify({submission_type: 'update_db'});
-            
-          submit(dataBaseObjectAllProducts, { method: "post" });
+          let submission = {};
+          submission['submission_type'] = JSON.stringify({submission_type: 'update_db'});
+          submission['settings'] = JSON.stringify({settings: settings[0]});
+
+          submit(submission, { method: "post" });
         }
 
-        console.log('allProducts', allProducts)
     return (
         <div>
-            <button onClick={() => handleUpdateDataBaseClick()}>Submit</button>
-            <button onClick={() => handleUpdateMetafieldsClick(variantsToUpdateShipDateStrings)}>Update metafields</button>
-            {Object.keys(allProducts).length > 0 ? (
+            {updating && <div>Updating</div>}
+            <button onClick={() => handleUpdateDataBaseClick()}>Update Products Database</button>
+            <button onClick={() => handleUpdateMetafieldsClick()}>Update Product Metafields</button>
+            {Object.keys(dbProducts).length > 0 ? (
             <ProductsView />) : (
               <div>Nothing here!</div>
             )}

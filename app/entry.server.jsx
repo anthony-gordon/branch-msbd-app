@@ -5,6 +5,7 @@ import { createReadableStreamFromReadable } from "@remix-run/node";
 import isbot from "isbot";
 import { addDocumentResponseHeaders } from "./shopify.server";
 
+
 const ABORT_DELAY = 5000;
 
 export default async function handleRequest(
@@ -20,11 +21,12 @@ export default async function handleRequest(
 
   return new Promise((resolve, reject) => {
     const { pipe, abort } = renderToPipeableStream(
-      <RemixServer
-        context={remixContext}
-        url={request.url}
-        abortDelay={ABORT_DELAY}
-      />,
+        <RemixServer
+          context={remixContext}
+          url={request.url}
+          abortDelay={ABORT_DELAY}
+        />
+      ,
       {
         [callbackName]: () => {
           const body = new PassThrough();
