@@ -1,126 +1,225 @@
-import { json } from "@remix-run/node";
-import { useLoaderData, Link, useNavigate } from "@remix-run/react";
-import { authenticate } from "../shopify.server";
+import { json, redirect } from "@remix-run/node";
 import {
-  Card,
-  EmptyState,
-  Layout,
-  Page,
-  IndexTable,
-  Thumbnail,
-  Text,
-  Icon,
-  InlineStack,
-} from "@shopify/polaris";
+    useActionData,
+    useSubmit,
+    useNavigation
+  } from "@remix-run/react";
+import shopify from '~/shopify.server';
 
-import { getQRCodes } from "../models/QRCode.server";
-import { DiamondAlertMajor, ImageMajor } from "@shopify/polaris-icons";
+import { useState, useContext, useEffect  } from 'react'
+import { returnDBShipDateStrings, returnMetafieldIds, formatCurrentProductData, returnVariantsToUpdateShipDateStrings, formatBulkDataOperationJSON, returnCurrentProductsArrayDifferences } from "../utils/dataFormattingFunctions"
+import { returnCurrentShipDateStrings } from "../utils/msbdFunctions"
+import { fetchProductsFromUrl, startBulkOperation, fetchBulkOperationData } from "../utils/productFetchHelpers"
+import { metafieldsUpdate, dbUpdate } from "../utils/updateFunctions"
+import { MyContext } from '../MyContext';
+import ProductsView from '../components/ProductsView'
+import { fetchDBShipDateData } from "../models/variantShipDateData.server";
+import { ProgressBar, Page, Layout, Card, Button } from '@shopify/polaris';
 
-export async function loader({ request }) {
-  const { admin, session } = await authenticate.admin(request);
-  const qrCodes = await getQRCodes(session.shop, admin.graphql);
+  export async function action({ request, params }){
+    const { admin } = await shopify.authenticate.admin(request);
 
-  return json({
-    qrCodes,
-  });
-}
+    const [bulkOperation] = await Promise.all([
+        startBulkOperation(admin)
+    ])
 
-const EmptyQRCodeState = ({ onAction }) => (
-  <EmptyState
-    heading="Create unique QR codes for your product"
-    action={{
-      content: "Create QR code",
-      onAction,
-    }}
-    image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png"
-  >
-    <p>Allow customers to scan codes and buy products using their phones.</p>
-  </EmptyState>
-);
+    const url = await fetchBulkOperationData(bulkOperation, admin);
+    const products = await fetchProductsFromUrl(url.data.node.url)
 
-function truncate(str, { length = 25 } = {}) {
-  if (!str) return "";
-  if (str.length <= length) return str;
-  return str.slice(0, length) + "…";
-}
+    const data = await request.formData();
 
-const QRTable = ({ qrCodes }) => (
-  <IndexTable
-    resourceName={{
-      singular: "QR code",
-      plural: "QR codes",
-    }}
-    itemCount={qrCodes.length}
-    headings={[
-      { title: "Thumbnail", hidden: true },
-      { title: "Title" },
-      { title: "Product" },
-      { title: "Date created" },
-      { title: "Scans" },
-    ]}
-    selectable={false}
-  >
-    {qrCodes.map((qrCode) => (
-      <QRTableRow key={qrCode.id} qrCode={qrCode} />
-    ))}
-  </IndexTable>
-);
+    let array = [];
+    let submission_type = '';
+    let settings = {};
+    let dbShipDateData = {}
+    let type = '';
+    let currentProductDataArray = []
 
-const QRTableRow = ({ qrCode }) => (
-  <IndexTable.Row id={qrCode.id} position={qrCode.id}>
-    <IndexTable.Cell>
-      <Thumbnail
-        source={qrCode.productImage || ImageMajor}
-        alt={qrCode.productTitle}
-        size="small"
-      />
-    </IndexTable.Cell>
-    <IndexTable.Cell>
-      <Link to={`qrcodes/${qrCode.id}`}>{truncate(qrCode.title)}</Link>
-    </IndexTable.Cell>
-    <IndexTable.Cell>
-      {qrCode.productDeleted ? (
-        <InlineStack align="start" gap="200">
-          <span style={{ width: "20px" }}>
-            <Icon source={DiamondAlertMajor} tone="critical" />
-          </span>
-          <Text tone="critical" as="span">
-            product has been deleted
-          </Text>
-        </InlineStack>
-      ) : (
-        truncate(qrCode.productTitle)
-      )}
-    </IndexTable.Cell>
-    <IndexTable.Cell>
-      {new Date(qrCode.createdAt).toDateString()}
-    </IndexTable.Cell>
-    <IndexTable.Cell>{qrCode.scans}</IndexTable.Cell>
-  </IndexTable.Row>
-);
+    for (var pair of data.entries()) {
+        if(JSON.parse(pair[1])['submission_type']){
+            submission_type = JSON.parse(pair[1])['submission_type'];
+        }
+        if(JSON.parse(pair[1])['settings']){
+            settings = JSON.parse(pair[1])['settings'];
+        }
+        if(JSON.parse(pair[1])['db_products']){
+          dbShipDateData = JSON.parse(pair[1])['db_products'];
+        }      
+        if(JSON.parse(pair[1])['type']){
+          type = JSON.parse(pair[1])['type'];
+        }    
+        if(!JSON.parse(pair[1])['submission_type'] && !JSON.parse(pair[1])['settings'] && !JSON.parse(pair[1])['db_products'] && !JSON.parse(pair[1])['type']){
+          currentProductDataArray.push(JSON.parse(pair[1]));
+        }
+    }
 
-export default function Index() {
-  const { qrCodes } = useLoaderData();
-  const navigate = useNavigate();
+    const formattedProducts = formatBulkDataOperationJSON(products);
+    let currentProductsDataAllObject = formatCurrentProductData(formattedProducts, settings);
+    let currentProductsArray = []
+    for (const [key, value] of Object.entries(currentProductsDataAllObject)) {
+      currentProductsArray.push(JSON.parse(value))
+    }
+    let dbShipDateStrings = returnDBShipDateStrings(dbShipDateData);
+    let currentShipDateStrings = returnCurrentShipDateStrings(currentProductsDataAllObject, settings);
+    let metafieldIds = returnMetafieldIds(currentProductsDataAllObject);
+    let variantsToUpdateShipDateStrings = returnVariantsToUpdateShipDateStrings(dbShipDateStrings, currentShipDateStrings)
 
-  return (
-    <Page>
-      <ui-title-bar title="QR codes">
-        <button variant="primary" onClick={() => navigate("/app/qrcodes/new")}>
-          Create QR code
-        </button>
-      </ui-title-bar>
-      <Layout>
-        <Layout.Section>
-          <Card padding="0">
-            {qrCodes.length === 0 ? (
-              <EmptyQRCodeState onAction={() => navigate("qrcodes/new")} />
-            ) : (
-              <QRTable qrCodes={qrCodes} />
+    let numberToUpdate = variantsToUpdateShipDateStrings == {} ? 0 : Object.entries(variantsToUpdateShipDateStrings).length;
+    let numberLeftToUpdate = variantsToUpdateShipDateStrings == {} || Object.entries(variantsToUpdateShipDateStrings).length - 10 < 0 ? 0 : Object.entries(variantsToUpdateShipDateStrings).length - 10;
+    
+    let currentProductsArrayDifferences = returnCurrentProductsArrayDifferences(currentProductsArray, dbShipDateData)
+    
+    if(submission_type == 'update_db'){
+        if(currentProductsArrayDifferences.length > 0){
+          await dbUpdate(currentProductsArrayDifferences);
+        }
+        const updatedDbProducts = await fetchDBShipDateData()
+
+        return json({
+          currentProductsDataAllObject, 
+          currentProductsArray, 
+          numberToUpdate, 
+          numberLeftToUpdate, 
+          submission_type, 
+          updatedDbProducts,
+          type,
+          currentProductsArrayDifferences,
+          currentProductDataArray,
+          dbShipDateData
+        })
+    } else if (submission_type == 'update_metafields'){
+      
+      
+      for (const [key, value] of Object.entries(variantsToUpdateShipDateStrings)) {
+        array.push(JSON.parse(value))
+      }
+      
+      const mfUpdate = await metafieldsUpdate(array, admin, metafieldIds);
+      // const dbUpdateToken = await dbUpdate(currentProductsArray);
+
+
+      return json({formattedProducts, 
+        currentProductsDataAllObject, 
+        dbShipDateStrings, 
+        currentShipDateStrings, 
+        variantsToUpdateShipDateStrings, 
+        submission_type,
+        settings,
+        array,
+        dbShipDateData,
+        mfUpdate,
+        metafieldIds,
+        // dbUpdateToken,
+        numberLeftToUpdate,
+        numberToUpdate,
+        type,
+        currentProductDataArray
+        })
+    }
+    
+  return redirect(`/app/variantshipdatedata`);
+  }
+
+    export default function Index(){        
+        const { dbProducts, setDbProducts } = useContext(MyContext);
+        const { settings, setSettings } = useContext(MyContext);
+        const { updating, setUpdating } = useContext(MyContext);
+        const { amountToUpdate, setAmountToUpdate } = useContext(MyContext);
+        const { amountLeftToUpdate, setAmountLeftToUpdate } = useContext(MyContext);
+        const { percentageUpdated, setPercentageUpdated } = useContext(MyContext);
+
+
+        const { state, formData } = useNavigation();
+
+
+        const submit = useSubmit();
+
+        const actionData = useActionData();
+
+        console.log('actionData', actionData)
+
+        useEffect(() => {
+          if(actionData !== undefined){
+            if(actionData.submission_type == "update_db"){
+              setDbProducts(actionData.updatedDbProducts)
+            }
+            if(actionData.numberToUpdate > 0 && actionData.numberLeftToUpdate > 0){
+              setUpdating(true);
+              let percentageUpdatedAmount = 0;
+              percentageUpdatedAmount = parseInt(100 * ((parseInt(amountToUpdate) - parseInt(actionData.numberLeftToUpdate))/parseInt(amountToUpdate)))
+              if(actionData.type == 'click'){
+                percentageUpdatedAmount = parseInt(100 * ((parseInt(actionData.numberToUpdate) - parseInt(actionData.numberLeftToUpdate))/parseInt(actionData.numberToUpdate)));
+                setAmountToUpdate(actionData.numberToUpdate);
+              }
+              setAmountLeftToUpdate(actionData.numberLeftToUpdate);
+              setPercentageUpdated(percentageUpdatedAmount);
+              if(actionData.submission_type == "update_db"){
+                handleUpdateMetafieldsClick();
+              } else if (actionData.submission_type == "update_metafields") {
+                handleUpdateDataBaseClick()
+              }
+            } else {
+              setUpdating(false);
+              setAmountToUpdate(0);
+              setAmountLeftToUpdate(0);
+              setPercentageUpdated(100);
+            }
+          }
+          
+        }, [actionData]);
+
+
+        function handleUpdateMetafieldsClick(type){
+          setUpdating(true);
+          if(type == 'click'){
+            setPercentageUpdated(0);
+          }
+          let submission = {};
+          submission['settings'] = JSON.stringify({settings: settings[0]});
+          submission['submission_type'] = JSON.stringify({submission_type: 'update_metafields'});
+          submission['db_products'] = JSON.stringify({db_products: dbProducts});
+
+          if(type == 'click'){
+            submission['type'] = JSON.stringify({type: 'click'})
+          } else {
+            submission['type'] = JSON.stringify({type: 'auto'})
+          }
+          
+
+          submit(submission, { method: "post" });
+        }
+
+        function handleUpdateDataBaseClick(){
+          let submission = {};
+          submission['submission_type'] = JSON.stringify({submission_type: 'update_db'});
+          submission['settings'] = JSON.stringify({settings: settings[0]});
+          submission['db_products'] = JSON.stringify({db_products: dbProducts});
+          
+          submit(submission, { method: "post"});
+        }
+
+    return (
+      <Page fullWidth>
+        <Layout>
+        <Layout.Section variant="twoThirds">
+        <Card title="Products" sectioned>
+
+            {amountLeftToUpdate > 0 && <div>{amountLeftToUpdate} / {amountToUpdate}</div>}
+            
+            {Object.keys(dbProducts).length > 0 ? (
+            <ProductsView />) : (
+              <div>Nothing here!</div>
             )}
-          </Card>
-        </Layout.Section>
-      </Layout>
-    </Page>
-  );
+            </Card>
+            </Layout.Section>
+            <Layout.Section variant="oneThird">
+            <Card title="Actions" sectioned>
+            <Button size="large" onClick={() => handleUpdateDataBaseClick()}>Update Products Database</Button>
+            <Button size="large" onClick={() => handleUpdateMetafieldsClick('click')}>Update Product Metafields</Button>
+            {updating && <div style={{width: 225}}>{percentageUpdated}%<ProgressBar progress={percentageUpdated} /></div>}
+            </Card>
+          </Layout.Section>
+          </Layout>
+    </Page>        
+    )
 }
