@@ -123,7 +123,7 @@ export async function metafieldsUpdate(array, admin, metafieldIds){
         // return results
         let index = 0
                     for (const arrayRow in array){
-                        if(index < 50){
+                        if(index < 10){
                         let variantId = Object.keys(array[`${index}`])[0].split('/ProductVariant/').pop();
                         let metafieldId = metafieldIds[`${Object.keys(array[`${index}`])[0]}`];
                         updates.push(array[`${index}`])
@@ -143,7 +143,7 @@ export async function metafieldsUpdate(array, admin, metafieldIds){
   export async function dbUpdate(array){
     let currentTime = new Date();
 
-    const promises = array.map(({productVariantId, processingTime, dateAvailable, productId, productHandle, title, b2bProduct, bundleProduct, overrideMessage, shipDateMessage}) => db.variantShipDateData.upsert(
+    const promises = array.map(({productVariantId, processingTime, dateAvailable, productId, productHandle, title, b2bProduct, bundleProduct, overrideMessage, shipDateMessage, updatedRecord}) => db.variantShipDateData.upsert(
         {
             where: {
                 productVariantId: productVariantId
@@ -155,7 +155,8 @@ export async function metafieldsUpdate(array, admin, metafieldIds){
                 b2bProduct: b2bProduct,
                 updated: currentTime,
                 overrideMessage: overrideMessage,
-                shipDateMessage: shipDateMessage
+                shipDateMessage: shipDateMessage,
+                updatedRecord: updatedRecord
             },
             create: {
                 processingTime: `${processingTime}`,
@@ -169,7 +170,8 @@ export async function metafieldsUpdate(array, admin, metafieldIds){
                 bundleProduct: bundleProduct,
                 b2bProduct: b2bProduct,
                 overrideMessage: overrideMessage,
-                updated: currentTime
+                updated: currentTime,
+                updatedRecord: ''
             }
         }
     ))

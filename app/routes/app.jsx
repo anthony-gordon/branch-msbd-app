@@ -35,6 +35,8 @@ export default function App() {
   const loadData = useLoaderData();
   const {apiKey, dataBaseProducts, settingsData} = loadData
 
+  console.log('dataBaseProducts', dataBaseProducts)
+
   useEffect(() => {
     setDbProducts(dataBaseProducts);
     setSettings(settingsData);

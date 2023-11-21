@@ -12,7 +12,6 @@ export default function ProductsView(){
 
   const indexOfLastPost = currentPage * pageLimit;
   const indexOfFirstItem = indexOfLastPost - pageLimit;
-  console.log(indexOfLastPost, indexOfFirstItem, Object.entries(dbProductsFormatted))
 
   const [currentItems, setCurrentItems] = useState(Object.entries(dbProductsFormatted).slice(indexOfFirstItem, indexOfLastPost));
 

@@ -174,3 +174,36 @@ export function returnMetafieldIds(currentData){
 
   return metafieldIds
 }
+
+export function returnCurrentProductsArrayDifferences(currentProductsArray, dbShipDateData){
+  let currentProductsArrayDifferences = [];
+
+  currentProductsArray.forEach((currentProduct) => {
+    let update = true;
+    let currentProductToBeUpdated = currentProduct;
+    let currentProductShippingString = currentProduct.shipDateMessage;
+    let currentProductVariantId = currentProduct.productVariantId;
+
+    let dbProduct = dbShipDateData.find(x => x.productVariantId === `${currentProductVariantId}`);
+    if(dbProduct){
+      let dbProductShippingString = dbProduct.shipDateMessage;
+      let dbProductUpdatedRecord = dbProduct.updatedRecord;
+      let currentTime = new Date();
+      
+      let dbProductUpdatedRecordArray = dbProductUpdatedRecord.replace("[", "").replace("[", "").split(',');
+      dbProductUpdatedRecordArray.unshift(`{${currentTime}: ${currentProductShippingString}}`);
+      let dbProductUpdatedRecordArrayMostRecent = dbProductUpdatedRecordArray.slice(0, 5);
+      currentProductToBeUpdated[`updatedRecord`] = dbProductUpdatedRecordArrayMostRecent.toString();
+      if(currentProductShippingString == dbProductShippingString){
+        update = false;
+      }
+    }
+
+    if(update == true){
+      currentProductsArrayDifferences.push(currentProductToBeUpdated);
+    }
+
+  })
+
+  return currentProductsArrayDifferences;
+}

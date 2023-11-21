@@ -1,151 +1,20 @@
 import { json, redirect } from "@remix-run/node";
 import {
-    useLoaderData,
     useActionData,
     useSubmit,
     useNavigation
   } from "@remix-run/react";
 import shopify from '~/shopify.server';
 
-import { fetchDBShipDateData, fetchSettings } from "../models/variantShipDateData.server";
-import db from "../db.server";
-import { useState, useContext, useEffect } from 'react'
-import { returnDBShipDateStrings, returnMetafieldIds, formatCurrentProductData, returnVariantsToUpdateShipDateStrings, formatBulkDataOperationJSON } from "../utils/dataFormattingFunctions"
+import { useState, useContext, useEffect  } from 'react'
+import { returnDBShipDateStrings, returnMetafieldIds, formatCurrentProductData, returnVariantsToUpdateShipDateStrings, formatBulkDataOperationJSON, returnCurrentProductsArrayDifferences } from "../utils/dataFormattingFunctions"
 import { returnCurrentShipDateStrings } from "../utils/msbdFunctions"
+import { fetchProductsFromUrl, startBulkOperation, fetchBulkOperationData } from "../utils/productFetchHelpers"
 import { metafieldsUpdate, dbUpdate } from "../utils/updateFunctions"
-import  axios  from "axios";
-import { createInterface } from 'node:readline'
 import { MyContext } from '../MyContext';
 import ProductsView from '../components/ProductsView'
-
-
-async function startBulkOperation(admin){
-
-const response = await admin.graphql(`
-mutation {
-  bulkOperationRunQuery(
-   query: """
-    {
-      products {
-        edges {
-          node {
-            id
-            title
-            handle
-            tags
-            variants {
-                edges {
-                    node {
-                        id
-                        title
-                        metafields {
-                            edges {
-                                node {
-                                    key
-                                    value
-                                    id
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-          }
-        }
-      }
-    }
-    """
-  ) {
-    bulkOperation {
-      id
-      status
-    }
-    userErrors {
-      field
-      message
-    }
-  }
-}
-`)
-
-const {
-  data: {
-    bulkOperationRunQuery: { bulkOperation },
-  },
-} = await response.json();
-
-console.log('response', response)
-
-return bulkOperation
-}
-
-const poll = async function (fn, fnCondition, ms) {
-    let result = await fn();
-    while (fnCondition(result)) {
-      await wait(ms);
-      result = await fn();
-    }
-    return result;
-  };
-  
-  const wait = function (ms = 1000) {
-    return new Promise(resolve => {
-      setTimeout(resolve, ms);
-    });
-  };
-
-  const validate = function(result){
-    return result.data.node.url === null;
-  }
-
-async function fetchBulkOperationData(bulkOperation, admin){
-
-    async function helper(){
-        const response = await admin.graphql(`
-        query {
-        node(id: "${bulkOperation.id}") {
-          ... on BulkOperation {
-            url
-            partialDataUrl
-          }
-        }
-      }
-    `);
-        let data1 = await response.json();
-
-        return data1
-    }
-    
-    let data = await poll(helper, validate, 1000)
-    
-    return data;
-}
-
-
-async function fetchProductsFromUrl(url){
-    var cleanedUrl = url.replace(/\n|\r|\s/g, '');
-
-    const response = await axios.get(`${url}`, {
-        responseType: 'stream'
-        })
-
-    const rl = createInterface({
-        input: response.data
-        })
-
-    let object = {};
-    let index = 0
-
-    for await (const line of rl) {
-        // do something with the current line
-        object[`${index}`] = JSON.parse(line);
-        index++
-        }
-
-    // const data = await response.json()
-
-    return object
-}
+import { fetchDBShipDateData } from "../models/variantShipDateData.server";
+import { ProgressBar } from '@shopify/polaris';
 
   export async function action({ request, params }){
     const { admin } = await shopify.authenticate.admin(request);
@@ -163,6 +32,8 @@ async function fetchProductsFromUrl(url){
     let submission_type = '';
     let settings = {};
     let dbShipDateData = {}
+    let type = '';
+    let currentProductDataArray = []
 
     for (var pair of data.entries()) {
         if(JSON.parse(pair[1])['submission_type']){
@@ -173,35 +44,62 @@ async function fetchProductsFromUrl(url){
         }
         if(JSON.parse(pair[1])['db_products']){
           dbShipDateData = JSON.parse(pair[1])['db_products'];
-        }        
+        }      
+        if(JSON.parse(pair[1])['type']){
+          type = JSON.parse(pair[1])['type'];
+        }    
+        if(!JSON.parse(pair[1])['submission_type'] && !JSON.parse(pair[1])['settings'] && !JSON.parse(pair[1])['db_products'] && !JSON.parse(pair[1])['type']){
+          currentProductDataArray.push(JSON.parse(pair[1]));
+        }
     }
 
     const formattedProducts = formatBulkDataOperationJSON(products);
-    let dataBaseObjectAllProducts = formatCurrentProductData(formattedProducts, settings);
+    let currentProductsDataAllObject = formatCurrentProductData(formattedProducts, settings);
     let currentProductsArray = []
-    for (const [key, value] of Object.entries(dataBaseObjectAllProducts)) {
+    for (const [key, value] of Object.entries(currentProductsDataAllObject)) {
       currentProductsArray.push(JSON.parse(value))
     }
+    let dbShipDateStrings = returnDBShipDateStrings(dbShipDateData);
+    let currentShipDateStrings = returnCurrentShipDateStrings(currentProductsDataAllObject, settings);
+    let metafieldIds = returnMetafieldIds(currentProductsDataAllObject);
+    let variantsToUpdateShipDateStrings = returnVariantsToUpdateShipDateStrings(dbShipDateStrings, currentShipDateStrings)
+
+    let numberToUpdate = variantsToUpdateShipDateStrings == {} ? 0 : Object.entries(variantsToUpdateShipDateStrings).length;
+    let numberLeftToUpdate = variantsToUpdateShipDateStrings == {} || Object.entries(variantsToUpdateShipDateStrings).length - 10 < 0 ? 0 : Object.entries(variantsToUpdateShipDateStrings).length - 10;
+    
+    let currentProductsArrayDifferences = returnCurrentProductsArrayDifferences(currentProductsArray, dbShipDateData)
+    
     if(submission_type == 'update_db'){
-        await dbUpdate(currentProductsArray);
-        return json({dataBaseObjectAllProducts, currentProductsArray})
+        if(currentProductsArrayDifferences.length > 0){
+          await dbUpdate(currentProductsArrayDifferences);
+        }
+        const updatedDbProducts = await fetchDBShipDateData()
+
+        return json({
+          currentProductsDataAllObject, 
+          currentProductsArray, 
+          numberToUpdate, 
+          numberLeftToUpdate, 
+          submission_type, 
+          updatedDbProducts,
+          type,
+          currentProductsArrayDifferences,
+          currentProductDataArray,
+          dbShipDateData
+        })
     } else if (submission_type == 'update_metafields'){
       
-      let dbShipDateStrings = returnDBShipDateStrings(dbShipDateData);
-      let currentShipDateStrings = returnCurrentShipDateStrings(dataBaseObjectAllProducts, settings);
-      let metafieldIds = returnMetafieldIds(dataBaseObjectAllProducts);
-      let variantsToUpdateShipDateStrings = returnVariantsToUpdateShipDateStrings(dbShipDateStrings, currentShipDateStrings)
-
+      
       for (const [key, value] of Object.entries(variantsToUpdateShipDateStrings)) {
         array.push(JSON.parse(value))
       }
       
       const mfUpdate = await metafieldsUpdate(array, admin, metafieldIds);
-      const dbUpdateToken = await dbUpdate(currentProductsArray);
+      // const dbUpdateToken = await dbUpdate(currentProductsArray);
 
 
       return json({formattedProducts, 
-        dataBaseObjectAllProducts, 
+        currentProductsDataAllObject, 
         dbShipDateStrings, 
         currentShipDateStrings, 
         variantsToUpdateShipDateStrings, 
@@ -211,7 +109,12 @@ async function fetchProductsFromUrl(url){
         dbShipDateData,
         mfUpdate,
         metafieldIds,
-        dbUpdateToken})
+        // dbUpdateToken,
+        numberLeftToUpdate,
+        numberToUpdate,
+        type,
+        currentProductDataArray
+        })
     }
     
   return redirect(`/app/variantshipdatedata`);
@@ -221,23 +124,67 @@ async function fetchProductsFromUrl(url){
         const { dbProducts, setDbProducts } = useContext(MyContext);
         const { settings, setSettings } = useContext(MyContext);
         const { updating, setUpdating } = useContext(MyContext);
+        const { amountToUpdate, setAmountToUpdate } = useContext(MyContext);
+        const { amountLeftToUpdate, setAmountLeftToUpdate } = useContext(MyContext);
+        const { percentageUpdated, setPercentageUpdated } = useContext(MyContext);
 
-        const actionData = useActionData();
 
-        useEffect(() => {
-          if(actionData !== undefined){
-            setUpdating(false)
-          }
-        }, [actionData]);
+        const { state, formData } = useNavigation();
+
 
         const submit = useSubmit();
 
-        function handleUpdateMetafieldsClick(){
+        const actionData = useActionData();
+
+        console.log('actionData', actionData)
+
+        useEffect(() => {
+          if(actionData !== undefined){
+            if(actionData.submission_type == "update_db"){
+              setDbProducts(actionData.updatedDbProducts)
+            }
+            if(actionData.numberToUpdate > 0 && actionData.numberLeftToUpdate > 0){
+              setUpdating(true);
+              let percentageUpdatedAmount = 0;
+              percentageUpdatedAmount = parseInt(100 * ((parseInt(amountToUpdate) - parseInt(actionData.numberLeftToUpdate))/parseInt(amountToUpdate)))
+              if(actionData.type == 'click'){
+                percentageUpdatedAmount = parseInt(100 * ((parseInt(actionData.numberToUpdate) - parseInt(actionData.numberLeftToUpdate))/parseInt(actionData.numberToUpdate)));
+                setAmountToUpdate(actionData.numberToUpdate);
+              }
+              setAmountLeftToUpdate(actionData.numberLeftToUpdate);
+              setPercentageUpdated(percentageUpdatedAmount);
+              if(actionData.submission_type == "update_db"){
+                handleUpdateMetafieldsClick();
+              } else if (actionData.submission_type == "update_metafields") {
+                handleUpdateDataBaseClick()
+              }
+            } else {
+              setUpdating(false);
+              setAmountToUpdate(0);
+              setAmountLeftToUpdate(0);
+              setPercentageUpdated(100);
+            }
+          }
+          
+        }, [actionData]);
+
+
+        function handleUpdateMetafieldsClick(type){
           setUpdating(true);
+          if(type == 'click'){
+            setPercentageUpdated(0);
+          }
           let submission = {};
           submission['settings'] = JSON.stringify({settings: settings[0]});
           submission['submission_type'] = JSON.stringify({submission_type: 'update_metafields'});
-          submission['db_products'] = JSON.stringify({db_products: dbProducts})
+          submission['db_products'] = JSON.stringify({db_products: dbProducts});
+
+          if(type == 'click'){
+            submission['type'] = JSON.stringify({type: 'click'})
+          } else {
+            submission['type'] = JSON.stringify({type: 'auto'})
+          }
+          
 
           submit(submission, { method: "post" });
         }
@@ -246,15 +193,18 @@ async function fetchProductsFromUrl(url){
           let submission = {};
           submission['submission_type'] = JSON.stringify({submission_type: 'update_db'});
           submission['settings'] = JSON.stringify({settings: settings[0]});
-
-          submit(submission, { method: "post" });
+          submission['db_products'] = JSON.stringify({db_products: dbProducts});
+          
+          submit(submission, { method: "post"});
         }
 
     return (
         <div>
-            {updating && <div>Updating</div>}
+            {updating && <div style={{width: 225}}>{percentageUpdated}%<ProgressBar progress={percentageUpdated} /></div>}
+            <div>{ state }</div>
+            {amountLeftToUpdate > 0 && <div>{amountLeftToUpdate} / {amountToUpdate}</div>}
             <button onClick={() => handleUpdateDataBaseClick()}>Update Products Database</button>
-            <button onClick={() => handleUpdateMetafieldsClick()}>Update Product Metafields</button>
+            <button onClick={() => handleUpdateMetafieldsClick('click')}>Update Product Metafields</button>
             {Object.keys(dbProducts).length > 0 ? (
             <ProductsView />) : (
               <div>Nothing here!</div>

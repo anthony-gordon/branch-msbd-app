@@ -2,7 +2,7 @@
 
 name = "branch-msbd-app"
 client_id = "2377268e6e57bb7ea9b46fadf7b51563"
-application_url = "https://ha-brighton-neighbor-friendly.trycloudflare.com"
+application_url = "https://noise-extreme-rip-expenses.trycloudflare.com"
 embedded = true
 
 [access_scopes]
@@ -11,10 +11,10 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://ha-brighton-neighbor-friendly.trycloudflare.com/auth/callback",
-  "https://ha-brighton-neighbor-friendly.trycloudflare.com/auth/shopify/callback",
-  "https://ha-brighton-neighbor-friendly.trycloudflare.com/api/auth/callback",
-  "https://ha-brighton-neighbor-friendly.trycloudflare.com/.shopify/graphiql/auth/callback"
+  "https://noise-extreme-rip-expenses.trycloudflare.com/auth/callback",
+  "https://noise-extreme-rip-expenses.trycloudflare.com/auth/shopify/callback",
+  "https://noise-extreme-rip-expenses.trycloudflare.com/api/auth/callback",
+  "https://noise-extreme-rip-expenses.trycloudflare.com/.shopify/graphiql/auth/callback"
 ]
 
 [webhooks]

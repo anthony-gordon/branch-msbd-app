@@ -133,7 +133,7 @@ var import_react3 = require("@remix-run/react");
 
 // app/MyContext.jsx
 var import_react2 = require("react"), import_jsx_dev_runtime2 = require("react/jsx-dev-runtime"), MyContext = (0, import_react2.createContext)(), MyContextProvider = ({ children }) => {
-  let [sharedState, setSharedState] = (0, import_react2.useState)("Initial value"), [buffer, setBuffer] = (0, import_react2.useState)(5), [defaultProcessingTime, setDefaultProcessingTime] = (0, import_react2.useState)(1), [dtcDefaultShippingRange, setDtcDefaultShippingRange] = (0, import_react2.useState)(1), [b2bDefaultShippingRange, setB2bDefaultShippingRange] = (0, import_react2.useState)(1), [dtcDateAvailableMessage, setDtcDateAvailableMessage] = (0, import_react2.useState)("Ships for free #date_available_description#"), [dtcProcessingTimeMessage, setDtcProcessingTimeMessage] = (0, import_react2.useState)("Ships for free #processing_time_description#"), [b2bDateAvailableMessage, setB2bDateAvailableMessage] = (0, import_react2.useState)("Ships with white glove installation #date_available_description#"), [b2bProcessingTimeMessage, setB2bProcessingTimeMessage] = (0, import_react2.useState)("Ships with white glove installation #processing_time_description#"), [allProducts, setAllProducts] = (0, import_react2.useState)({}), [settings, setSettings] = (0, import_react2.useState)({}), [dbProducts, setDbProducts] = (0, import_react2.useState)({}), [dbProductsFormatted, setDbProductsFormatted] = (0, import_react2.useState)({}), [updating, setUpdating] = (0, import_react2.useState)(!1), [amountToUpdate, setAmountToUpdate] = (0, import_react2.useState)(0), [amountUpdated, setAmountUpdated] = (0, import_react2.useState)(0);
+  let [sharedState, setSharedState] = (0, import_react2.useState)("Initial value"), [buffer, setBuffer] = (0, import_react2.useState)(5), [defaultProcessingTime, setDefaultProcessingTime] = (0, import_react2.useState)(1), [dtcDefaultShippingRange, setDtcDefaultShippingRange] = (0, import_react2.useState)(1), [b2bDefaultShippingRange, setB2bDefaultShippingRange] = (0, import_react2.useState)(1), [dtcDateAvailableMessage, setDtcDateAvailableMessage] = (0, import_react2.useState)("Ships for free #date_available_description#"), [dtcProcessingTimeMessage, setDtcProcessingTimeMessage] = (0, import_react2.useState)("Ships for free #processing_time_description#"), [b2bDateAvailableMessage, setB2bDateAvailableMessage] = (0, import_react2.useState)("Ships with white glove installation #date_available_description#"), [b2bProcessingTimeMessage, setB2bProcessingTimeMessage] = (0, import_react2.useState)("Ships with white glove installation #processing_time_description#"), [allProducts, setAllProducts] = (0, import_react2.useState)({}), [settings, setSettings] = (0, import_react2.useState)({}), [dbProducts, setDbProducts] = (0, import_react2.useState)({}), [dbProductsFormatted, setDbProductsFormatted] = (0, import_react2.useState)({}), [updating, setUpdating] = (0, import_react2.useState)(!1), [amountToUpdate, setAmountToUpdate] = (0, import_react2.useState)(0), [amountLeftToUpdate, setAmountLeftToUpdate] = (0, import_react2.useState)(0), [percentageUpdated, setPercentageUpdated] = (0, import_react2.useState)(100);
   return /* @__PURE__ */ (0, import_jsx_dev_runtime2.jsxDEV)(MyContext.Provider, { value: {
     sharedState,
     setSharedState,
@@ -165,11 +165,13 @@ var import_react2 = require("react"), import_jsx_dev_runtime2 = require("react/j
     setUpdating,
     amountToUpdate,
     setAmountToUpdate,
-    amountUpdated,
-    setAmountUpdated
+    amountLeftToUpdate,
+    setAmountLeftToUpdate,
+    percentageUpdated,
+    setPercentageUpdated
   }, children }, void 0, !1, {
     fileName: "app/MyContext.jsx",
-    lineNumber: 27,
+    lineNumber: 28,
     columnNumber: 5
   }, this);
 };
@@ -353,6 +355,19 @@ function returnMetafieldIds(currentData) {
     metafieldIds[`${key}`] = JSON.parse(value).shipDateMessageId;
   return metafieldIds;
 }
+function returnCurrentProductsArrayDifferences(currentProductsArray, dbShipDateData) {
+  let currentProductsArrayDifferences = [];
+  return currentProductsArray.forEach((currentProduct) => {
+    let update = !0, currentProductToBeUpdated = currentProduct, currentProductShippingString = currentProduct.shipDateMessage, currentProductVariantId = currentProduct.productVariantId, dbProduct = dbShipDateData.find((x) => x.productVariantId === `${currentProductVariantId}`);
+    if (dbProduct) {
+      let dbProductShippingString = dbProduct.shipDateMessage, dbProductUpdatedRecord = dbProduct.updatedRecord, currentTime = /* @__PURE__ */ new Date(), dbProductUpdatedRecordArray = dbProductUpdatedRecord.replace("[", "").replace("[", "").split(",");
+      dbProductUpdatedRecordArray.unshift(`{${currentTime}: ${currentProductShippingString}}`);
+      let dbProductUpdatedRecordArrayMostRecent = dbProductUpdatedRecordArray.slice(0, 5);
+      currentProductToBeUpdated.updatedRecord = dbProductUpdatedRecordArrayMostRecent.toString(), currentProductShippingString == dbProductShippingString && (update = !1);
+    }
+    update == !0 && currentProductsArrayDifferences.push(currentProductToBeUpdated);
+  }), currentProductsArrayDifferences;
+}
 
 // app/utils/msbdFunctions.js
 function generateShipMessage(variantData, settings) {
@@ -411,6 +426,99 @@ function returnCurrentShipDateStrings(currentData, settings) {
     currentShipDateStrings[`${key}`] = shipMessage;
   }
   return currentShipDateStrings;
+}
+
+// app/utils/productFetchHelpers.js
+var import_axios = __toESM(require("axios")), import_node_readline = require("node:readline");
+async function fetchProductsFromUrl(url) {
+  let response = await import_axios.default.get(`${url}`, {
+    responseType: "stream"
+  }), rl = (0, import_node_readline.createInterface)({
+    input: response.data
+  }), object = {}, index = 0;
+  for await (let line of rl)
+    object[`${index}`] = JSON.parse(line), index++;
+  return object;
+}
+async function startBulkOperation(admin) {
+  let response = await admin.graphql(`
+    mutation {
+      bulkOperationRunQuery(
+       query: """
+        {
+          products {
+            edges {
+              node {
+                id
+                title
+                handle
+                tags
+                variants {
+                    edges {
+                        node {
+                            id
+                            title
+                            metafields {
+                                edges {
+                                    node {
+                                        key
+                                        value
+                                        id
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+              }
+            }
+          }
+        }
+        """
+      ) {
+        bulkOperation {
+          id
+          status
+        }
+        userErrors {
+          field
+          message
+        }
+      }
+    }
+    `), {
+    data: {
+      bulkOperationRunQuery: { bulkOperation }
+    }
+  } = await response.json();
+  return bulkOperation;
+}
+var poll = async function(fn, fnCondition, ms) {
+  let result = await fn();
+  for (; fnCondition(result); )
+    await wait(ms), result = await fn();
+  return result;
+}, wait = function(ms = 1e3) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}, validate = function(result) {
+  return result.data.node.url === null;
+};
+async function fetchBulkOperationData(bulkOperation, admin) {
+  async function helper() {
+    return await (await admin.graphql(`
+            query {
+            node(id: "${bulkOperation.id}") {
+              ... on BulkOperation {
+                url
+                partialDataUrl
+              }
+            }
+          }
+        `)).json();
+  }
+  return await poll(helper, validate, 1e3);
 }
 
 // app/utils/updateFunctions.jsx
@@ -485,7 +593,7 @@ async function metafieldsUpdate(array, admin, metafieldIds) {
   try {
     let index = 0;
     for (let arrayRow in array)
-      if (index < 50) {
+      if (index < 10) {
         let variantId = Object.keys(array[`${index}`])[0].split("/ProductVariant/").pop(), metafieldId = metafieldIds[`${Object.keys(array[`${index}`])[0]}`];
         updates.push(array[`${index}`]);
         let variantShippingMessage = Object.values(array[`${index}`])[0], result = await metafieldUpdateGraphQL(variantId, variantShippingMessage, admin, metafieldId);
@@ -497,7 +605,7 @@ async function metafieldsUpdate(array, admin, metafieldIds) {
   return updates;
 }
 async function dbUpdate(array) {
-  let currentTime = /* @__PURE__ */ new Date(), promises = array.map(({ productVariantId, processingTime, dateAvailable, productId, productHandle, title, b2bProduct, bundleProduct, overrideMessage, shipDateMessage }) => db_server_default.variantShipDateData.upsert(
+  let currentTime = /* @__PURE__ */ new Date(), promises = array.map(({ productVariantId, processingTime, dateAvailable, productId, productHandle, title, b2bProduct, bundleProduct, overrideMessage, shipDateMessage, updatedRecord }) => db_server_default.variantShipDateData.upsert(
     {
       where: {
         productVariantId
@@ -509,7 +617,8 @@ async function dbUpdate(array) {
         b2bProduct,
         updated: currentTime,
         overrideMessage,
-        shipDateMessage
+        shipDateMessage,
+        updatedRecord
       },
       create: {
         processingTime: `${processingTime}`,
@@ -523,7 +632,8 @@ async function dbUpdate(array) {
         bundleProduct,
         b2bProduct,
         overrideMessage,
-        updated: currentTime
+        updated: currentTime,
+        updatedRecord: ""
       }
     }
   ));
@@ -548,16 +658,11 @@ async function settingsUpdate(data) {
   });
 }
 
-// app/routes/app.variantshipdatedata.jsx
-var import_axios = __toESM(require("axios")), import_node_readline = require("node:readline");
-
 // app/components/ProductsView.jsx
 var import_polaris = require("@shopify/polaris");
 var import_react5 = require("react"), import_react6 = require("@remix-run/react"), import_jsx_dev_runtime4 = require("react/jsx-dev-runtime");
 function ProductsView() {
-  let { dbProductsFormatted } = (0, import_react5.useContext)(MyContext), [pageLimit, setPageLimit] = (0, import_react5.useState)(25), [currentPage, setCurrentPage] = (0, import_react5.useState)(1), indexOfLastPost = currentPage * pageLimit, indexOfFirstItem = indexOfLastPost - pageLimit;
-  console.log(indexOfLastPost, indexOfFirstItem, Object.entries(dbProductsFormatted));
-  let [currentItems, setCurrentItems] = (0, import_react5.useState)(Object.entries(dbProductsFormatted).slice(indexOfFirstItem, indexOfLastPost));
+  let { dbProductsFormatted } = (0, import_react5.useContext)(MyContext), [pageLimit, setPageLimit] = (0, import_react5.useState)(25), [currentPage, setCurrentPage] = (0, import_react5.useState)(1), indexOfLastPost = currentPage * pageLimit, indexOfFirstItem = indexOfLastPost - pageLimit, [currentItems, setCurrentItems] = (0, import_react5.useState)(Object.entries(dbProductsFormatted).slice(indexOfFirstItem, indexOfLastPost));
   (0, import_react5.useEffect)(() => {
     let indexOfLastPost2 = currentPage * pageLimit, indexOfFirstItem2 = indexOfLastPost2 - pageLimit;
     setCurrentItems(Object.entries(dbProductsFormatted).slice(indexOfFirstItem2, indexOfLastPost2));
@@ -571,11 +676,11 @@ function ProductsView() {
   return /* @__PURE__ */ (0, import_jsx_dev_runtime4.jsxDEV)("div", { children: [
     currentItems.length > 0 && currentItems.map((currentItem, index) => /* @__PURE__ */ (0, import_jsx_dev_runtime4.jsxDEV)("li", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime4.jsxDEV)(import_react6.Link, { to: `/app/products/${currentItem[0].split("/Product/").pop()}`, children: Object.entries(currentItem[1])[0][1].title.split("-")[0] }, void 0, !1, {
       fileName: "app/components/ProductsView.jsx",
-      lineNumber: 36,
+      lineNumber: 35,
       columnNumber: 32
     }, this) }, index, !1, {
       fileName: "app/components/ProductsView.jsx",
-      lineNumber: 36,
+      lineNumber: 35,
       columnNumber: 16
     }, this)),
     /* @__PURE__ */ (0, import_jsx_dev_runtime4.jsxDEV)(
@@ -594,130 +699,52 @@ function ProductsView() {
       !1,
       {
         fileName: "app/components/ProductsView.jsx",
-        lineNumber: 39,
+        lineNumber: 38,
         columnNumber: 16
       },
       this
     )
   ] }, void 0, !0, {
     fileName: "app/components/ProductsView.jsx",
-    lineNumber: 34,
+    lineNumber: 33,
     columnNumber: 9
   }, this);
 }
 
 // app/routes/app.variantshipdatedata.jsx
-var import_jsx_dev_runtime5 = require("react/jsx-dev-runtime");
-async function startBulkOperation(admin) {
-  let response = await admin.graphql(`
-mutation {
-  bulkOperationRunQuery(
-   query: """
-    {
-      products {
-        edges {
-          node {
-            id
-            title
-            handle
-            tags
-            variants {
-                edges {
-                    node {
-                        id
-                        title
-                        metafields {
-                            edges {
-                                node {
-                                    key
-                                    value
-                                    id
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-          }
-        }
-      }
-    }
-    """
-  ) {
-    bulkOperation {
-      id
-      status
-    }
-    userErrors {
-      field
-      message
-    }
-  }
-}
-`), {
-    data: {
-      bulkOperationRunQuery: { bulkOperation }
-    }
-  } = await response.json();
-  return console.log("response", response), bulkOperation;
-}
-var poll = async function(fn, fnCondition, ms) {
-  let result = await fn();
-  for (; fnCondition(result); )
-    await wait(ms), result = await fn();
-  return result;
-}, wait = function(ms = 1e3) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-}, validate = function(result) {
-  return result.data.node.url === null;
-};
-async function fetchBulkOperationData(bulkOperation, admin) {
-  async function helper() {
-    return await (await admin.graphql(`
-        query {
-        node(id: "${bulkOperation.id}") {
-          ... on BulkOperation {
-            url
-            partialDataUrl
-          }
-        }
-      }
-    `)).json();
-  }
-  return await poll(helper, validate, 1e3);
-}
-async function fetchProductsFromUrl(url) {
-  var cleanedUrl = url.replace(/\n|\r|\s/g, "");
-  let response = await import_axios.default.get(`${url}`, {
-    responseType: "stream"
-  }), rl = (0, import_node_readline.createInterface)({
-    input: response.data
-  }), object = {}, index = 0;
-  for await (let line of rl)
-    object[`${index}`] = JSON.parse(line), index++;
-  return object;
-}
+var import_polaris2 = require("@shopify/polaris"), import_jsx_dev_runtime5 = require("react/jsx-dev-runtime");
 async function action({ request, params }) {
   let { admin } = await shopify_server_default.authenticate.admin(request), [bulkOperation] = await Promise.all([
     startBulkOperation(admin)
-  ]), url = await fetchBulkOperationData(bulkOperation, admin), products = await fetchProductsFromUrl(url.data.node.url), data = await request.formData(), array = [], submission_type = "", settings = {}, dbShipDateData = {};
+  ]), url = await fetchBulkOperationData(bulkOperation, admin), products = await fetchProductsFromUrl(url.data.node.url), data = await request.formData(), array = [], submission_type = "", settings = {}, dbShipDateData = {}, type = "", currentProductDataArray = [];
   for (var pair of data.entries())
-    JSON.parse(pair[1]).submission_type && (submission_type = JSON.parse(pair[1]).submission_type), JSON.parse(pair[1]).settings && (settings = JSON.parse(pair[1]).settings), JSON.parse(pair[1]).db_products && (dbShipDateData = JSON.parse(pair[1]).db_products);
-  let formattedProducts = formatBulkDataOperationJSON(products), dataBaseObjectAllProducts = formatCurrentProductData(formattedProducts, settings), currentProductsArray = [];
-  for (let [key, value] of Object.entries(dataBaseObjectAllProducts))
+    JSON.parse(pair[1]).submission_type && (submission_type = JSON.parse(pair[1]).submission_type), JSON.parse(pair[1]).settings && (settings = JSON.parse(pair[1]).settings), JSON.parse(pair[1]).db_products && (dbShipDateData = JSON.parse(pair[1]).db_products), JSON.parse(pair[1]).type && (type = JSON.parse(pair[1]).type), !JSON.parse(pair[1]).submission_type && !JSON.parse(pair[1]).settings && !JSON.parse(pair[1]).db_products && !JSON.parse(pair[1]).type && currentProductDataArray.push(JSON.parse(pair[1]));
+  let formattedProducts = formatBulkDataOperationJSON(products), currentProductsDataAllObject = formatCurrentProductData(formattedProducts, settings), currentProductsArray = [];
+  for (let [key, value] of Object.entries(currentProductsDataAllObject))
     currentProductsArray.push(JSON.parse(value));
-  if (submission_type == "update_db")
-    return await dbUpdate(currentProductsArray), (0, import_node4.json)({ dataBaseObjectAllProducts, currentProductsArray });
-  if (submission_type == "update_metafields") {
-    let dbShipDateStrings = returnDBShipDateStrings(dbShipDateData), currentShipDateStrings = returnCurrentShipDateStrings(dataBaseObjectAllProducts, settings), metafieldIds = returnMetafieldIds(dataBaseObjectAllProducts), variantsToUpdateShipDateStrings = returnVariantsToUpdateShipDateStrings(dbShipDateStrings, currentShipDateStrings);
+  let dbShipDateStrings = returnDBShipDateStrings(dbShipDateData), currentShipDateStrings = returnCurrentShipDateStrings(currentProductsDataAllObject, settings), metafieldIds = returnMetafieldIds(currentProductsDataAllObject), variantsToUpdateShipDateStrings = returnVariantsToUpdateShipDateStrings(dbShipDateStrings, currentShipDateStrings), numberToUpdate = variantsToUpdateShipDateStrings == {} ? 0 : Object.entries(variantsToUpdateShipDateStrings).length, numberLeftToUpdate = variantsToUpdateShipDateStrings == {} || Object.entries(variantsToUpdateShipDateStrings).length - 10 < 0 ? 0 : Object.entries(variantsToUpdateShipDateStrings).length - 10, currentProductsArrayDifferences = returnCurrentProductsArrayDifferences(currentProductsArray, dbShipDateData);
+  if (submission_type == "update_db") {
+    currentProductsArrayDifferences.length > 0 && await dbUpdate(currentProductsArrayDifferences);
+    let updatedDbProducts = await fetchDBShipDateData();
+    return (0, import_node4.json)({
+      currentProductsDataAllObject,
+      currentProductsArray,
+      numberToUpdate,
+      numberLeftToUpdate,
+      submission_type,
+      updatedDbProducts,
+      type,
+      currentProductsArrayDifferences,
+      currentProductDataArray,
+      dbShipDateData
+    });
+  } else if (submission_type == "update_metafields") {
     for (let [key, value] of Object.entries(variantsToUpdateShipDateStrings))
       array.push(JSON.parse(value));
-    let mfUpdate = await metafieldsUpdate(array, admin, metafieldIds), dbUpdateToken = await dbUpdate(currentProductsArray);
+    let mfUpdate = await metafieldsUpdate(array, admin, metafieldIds);
     return (0, import_node4.json)({
       formattedProducts,
-      dataBaseObjectAllProducts,
+      currentProductsDataAllObject,
       dbShipDateStrings,
       currentShipDateStrings,
       variantsToUpdateShipDateStrings,
@@ -727,54 +754,85 @@ async function action({ request, params }) {
       dbShipDateData,
       mfUpdate,
       metafieldIds,
-      dbUpdateToken
+      // dbUpdateToken,
+      numberLeftToUpdate,
+      numberToUpdate,
+      type,
+      currentProductDataArray
     });
   }
   return (0, import_node4.redirect)("/app/variantshipdatedata");
 }
 function variantShipDataDataList() {
-  let { dbProducts, setDbProducts } = (0, import_react8.useContext)(MyContext), { settings, setSettings } = (0, import_react8.useContext)(MyContext), { updating, setUpdating } = (0, import_react8.useContext)(MyContext), actionData = (0, import_react7.useActionData)();
-  (0, import_react8.useEffect)(() => {
-    actionData !== void 0 && setUpdating(!1);
+  let { dbProducts, setDbProducts } = (0, import_react8.useContext)(MyContext), { settings, setSettings } = (0, import_react8.useContext)(MyContext), { updating, setUpdating } = (0, import_react8.useContext)(MyContext), { amountToUpdate, setAmountToUpdate } = (0, import_react8.useContext)(MyContext), { amountLeftToUpdate, setAmountLeftToUpdate } = (0, import_react8.useContext)(MyContext), { percentageUpdated, setPercentageUpdated } = (0, import_react8.useContext)(MyContext), { state, formData } = (0, import_react7.useNavigation)(), submit = (0, import_react7.useSubmit)(), actionData = (0, import_react7.useActionData)();
+  console.log("actionData", actionData), (0, import_react8.useEffect)(() => {
+    if (actionData !== void 0)
+      if (actionData.submission_type == "update_db" && setDbProducts(actionData.updatedDbProducts), actionData.numberToUpdate > 0 && actionData.numberLeftToUpdate > 0) {
+        setUpdating(!0);
+        let percentageUpdatedAmount = 0;
+        percentageUpdatedAmount = parseInt(100 * ((parseInt(amountToUpdate) - parseInt(actionData.numberLeftToUpdate)) / parseInt(amountToUpdate))), actionData.type == "click" && (percentageUpdatedAmount = parseInt(100 * ((parseInt(actionData.numberToUpdate) - parseInt(actionData.numberLeftToUpdate)) / parseInt(actionData.numberToUpdate))), setAmountToUpdate(actionData.numberToUpdate)), setAmountLeftToUpdate(actionData.numberLeftToUpdate), setPercentageUpdated(percentageUpdatedAmount), actionData.submission_type == "update_db" ? handleUpdateMetafieldsClick() : actionData.submission_type == "update_metafields" && handleUpdateDataBaseClick();
+      } else
+        setUpdating(!1), setAmountToUpdate(0), setAmountLeftToUpdate(0), setPercentageUpdated(100);
   }, [actionData]);
-  let submit = (0, import_react7.useSubmit)();
-  function handleUpdateMetafieldsClick() {
-    setUpdating(!0);
+  function handleUpdateMetafieldsClick(type) {
+    setUpdating(!0), type == "click" && setPercentageUpdated(0);
     let submission = {};
-    submission.settings = JSON.stringify({ settings: settings[0] }), submission.submission_type = JSON.stringify({ submission_type: "update_metafields" }), submission.db_products = JSON.stringify({ db_products: dbProducts }), submit(submission, { method: "post" });
+    submission.settings = JSON.stringify({ settings: settings[0] }), submission.submission_type = JSON.stringify({ submission_type: "update_metafields" }), submission.db_products = JSON.stringify({ db_products: dbProducts }), type == "click" ? submission.type = JSON.stringify({ type: "click" }) : submission.type = JSON.stringify({ type: "auto" }), submit(submission, { method: "post" });
   }
   function handleUpdateDataBaseClick() {
     let submission = {};
-    submission.submission_type = JSON.stringify({ submission_type: "update_db" }), submission.settings = JSON.stringify({ settings: settings[0] }), submit(submission, { method: "post" });
+    submission.submission_type = JSON.stringify({ submission_type: "update_db" }), submission.settings = JSON.stringify({ settings: settings[0] }), submission.db_products = JSON.stringify({ db_products: dbProducts }), submit(submission, { method: "post" });
   }
   return /* @__PURE__ */ (0, import_jsx_dev_runtime5.jsxDEV)("div", { children: [
-    updating && /* @__PURE__ */ (0, import_jsx_dev_runtime5.jsxDEV)("div", { children: "Updating" }, void 0, !1, {
+    updating && /* @__PURE__ */ (0, import_jsx_dev_runtime5.jsxDEV)("div", { style: { width: 225 }, children: [
+      percentageUpdated,
+      "%",
+      /* @__PURE__ */ (0, import_jsx_dev_runtime5.jsxDEV)(import_polaris2.ProgressBar, { progress: percentageUpdated }, void 0, !1, {
+        fileName: "app/routes/app.variantshipdatedata.jsx",
+        lineNumber: 203,
+        columnNumber: 72
+      }, this)
+    ] }, void 0, !0, {
       fileName: "app/routes/app.variantshipdatedata.jsx",
-      lineNumber: 255,
+      lineNumber: 203,
       columnNumber: 26
+    }, this),
+    /* @__PURE__ */ (0, import_jsx_dev_runtime5.jsxDEV)("div", { children: state }, void 0, !1, {
+      fileName: "app/routes/app.variantshipdatedata.jsx",
+      lineNumber: 204,
+      columnNumber: 13
+    }, this),
+    amountLeftToUpdate > 0 && /* @__PURE__ */ (0, import_jsx_dev_runtime5.jsxDEV)("div", { children: [
+      amountLeftToUpdate,
+      " / ",
+      amountToUpdate
+    ] }, void 0, !0, {
+      fileName: "app/routes/app.variantshipdatedata.jsx",
+      lineNumber: 205,
+      columnNumber: 40
     }, this),
     /* @__PURE__ */ (0, import_jsx_dev_runtime5.jsxDEV)("button", { onClick: () => handleUpdateDataBaseClick(), children: "Update Products Database" }, void 0, !1, {
       fileName: "app/routes/app.variantshipdatedata.jsx",
-      lineNumber: 256,
+      lineNumber: 206,
       columnNumber: 13
     }, this),
-    /* @__PURE__ */ (0, import_jsx_dev_runtime5.jsxDEV)("button", { onClick: () => handleUpdateMetafieldsClick(), children: "Update Product Metafields" }, void 0, !1, {
+    /* @__PURE__ */ (0, import_jsx_dev_runtime5.jsxDEV)("button", { onClick: () => handleUpdateMetafieldsClick("click"), children: "Update Product Metafields" }, void 0, !1, {
       fileName: "app/routes/app.variantshipdatedata.jsx",
-      lineNumber: 257,
+      lineNumber: 207,
       columnNumber: 13
     }, this),
     Object.keys(dbProducts).length > 0 ? /* @__PURE__ */ (0, import_jsx_dev_runtime5.jsxDEV)(ProductsView, {}, void 0, !1, {
       fileName: "app/routes/app.variantshipdatedata.jsx",
-      lineNumber: 259,
+      lineNumber: 209,
       columnNumber: 13
     }, this) : /* @__PURE__ */ (0, import_jsx_dev_runtime5.jsxDEV)("div", { children: "Nothing here!" }, void 0, !1, {
       fileName: "app/routes/app.variantshipdatedata.jsx",
-      lineNumber: 260,
+      lineNumber: 210,
       columnNumber: 15
     }, this)
   ] }, void 0, !0, {
     fileName: "app/routes/app.variantshipdatedata.jsx",
-    lineNumber: 254,
+    lineNumber: 202,
     columnNumber: 9
   }, this);
 }
@@ -889,7 +947,7 @@ __export(app_qrcodes_id_exports, {
   loader: () => loader2
 });
 var import_react11 = require("react"), import_node6 = require("@remix-run/node"), import_react12 = require("@remix-run/react");
-var import_polaris2 = require("@shopify/polaris"), import_polaris_icons = require("@shopify/polaris-icons");
+var import_polaris3 = require("@shopify/polaris"), import_polaris_icons = require("@shopify/polaris-icons");
 var import_jsx_dev_runtime7 = require("react/jsx-dev-runtime");
 async function loader2({ request, params }) {
   let { admin } = await authenticate.admin(request);
@@ -943,7 +1001,7 @@ function QRCodeForm() {
     };
     setCleanFormState({ ...formState });
   }
-  return /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris2.Page, { children: [
+  return /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris3.Page, { children: [
     /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)("ui-title-bar", { title: qrCode.id ? "Edit QR code" : "Create new QR code", children: /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)("button", { variant: "breadcrumb", onClick: () => navigate("/app"), children: "QR codes" }, void 0, !1, {
       fileName: "app/routes/app.qrcodes.$id.jsx",
       lineNumber: 130,
@@ -953,16 +1011,16 @@ function QRCodeForm() {
       lineNumber: 129,
       columnNumber: 7
     }, this),
-    /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris2.Layout, { children: [
-      /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris2.Layout.Section, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris2.BlockStack, { gap: "500", children: [
-        /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris2.Card, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris2.BlockStack, { gap: "500", children: [
-          /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris2.Text, { as: "h2", variant: "headingLg", children: "Title" }, void 0, !1, {
+    /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris3.Layout, { children: [
+      /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris3.Layout.Section, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris3.BlockStack, { gap: "500", children: [
+        /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris3.Card, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris3.BlockStack, { gap: "500", children: [
+          /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris3.Text, { as: "h2", variant: "headingLg", children: "Title" }, void 0, !1, {
             fileName: "app/routes/app.qrcodes.$id.jsx",
             lineNumber: 139,
             columnNumber: 17
           }, this),
           /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(
-            import_polaris2.TextField,
+            import_polaris3.TextField,
             {
               id: "title",
               helpText: "Only store staff can see this title",
@@ -991,14 +1049,14 @@ function QRCodeForm() {
           lineNumber: 137,
           columnNumber: 13
         }, this),
-        /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris2.Card, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris2.BlockStack, { gap: "500", children: [
-          /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris2.InlineStack, { align: "space-between", children: [
-            /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris2.Text, { as: "h2", variant: "headingLg", children: "Product" }, void 0, !1, {
+        /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris3.Card, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris3.BlockStack, { gap: "500", children: [
+          /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris3.InlineStack, { align: "space-between", children: [
+            /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris3.Text, { as: "h2", variant: "headingLg", children: "Product" }, void 0, !1, {
               fileName: "app/routes/app.qrcodes.$id.jsx",
               lineNumber: 157,
               columnNumber: 19
             }, this),
-            formState.productId ? /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris2.Button, { variant: "plain", onClick: selectProduct, children: "Change product" }, void 0, !1, {
+            formState.productId ? /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris3.Button, { variant: "plain", onClick: selectProduct, children: "Change product" }, void 0, !1, {
               fileName: "app/routes/app.qrcodes.$id.jsx",
               lineNumber: 161,
               columnNumber: 21
@@ -1008,9 +1066,9 @@ function QRCodeForm() {
             lineNumber: 156,
             columnNumber: 17
           }, this),
-          formState.productId ? /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris2.InlineStack, { blockAlign: "center", gap: "500", children: [
+          formState.productId ? /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris3.InlineStack, { blockAlign: "center", gap: "500", children: [
             /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(
-              import_polaris2.Thumbnail,
+              import_polaris3.Thumbnail,
               {
                 source: formState.productImage || import_polaris_icons.ImageMajor,
                 alt: formState.productAlt
@@ -1024,7 +1082,7 @@ function QRCodeForm() {
               },
               this
             ),
-            /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris2.Text, { as: "span", variant: "headingMd", fontWeight: "semibold", children: formState.productTitle }, void 0, !1, {
+            /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris3.Text, { as: "span", variant: "headingMd", fontWeight: "semibold", children: formState.productTitle }, void 0, !1, {
               fileName: "app/routes/app.qrcodes.$id.jsx",
               lineNumber: 172,
               columnNumber: 21
@@ -1033,14 +1091,14 @@ function QRCodeForm() {
             fileName: "app/routes/app.qrcodes.$id.jsx",
             lineNumber: 167,
             columnNumber: 19
-          }, this) : /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris2.BlockStack, { gap: "200", children: [
-            /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris2.Button, { onClick: selectProduct, id: "select-product", children: "Select product" }, void 0, !1, {
+          }, this) : /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris3.BlockStack, { gap: "200", children: [
+            /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris3.Button, { onClick: selectProduct, id: "select-product", children: "Select product" }, void 0, !1, {
               fileName: "app/routes/app.qrcodes.$id.jsx",
               lineNumber: 178,
               columnNumber: 21
             }, this),
             errors.productId ? /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(
-              import_polaris2.InlineError,
+              import_polaris3.InlineError,
               {
                 message: errors.productId,
                 fieldID: "myFieldID"
@@ -1059,7 +1117,7 @@ function QRCodeForm() {
             lineNumber: 177,
             columnNumber: 19
           }, this),
-          /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris2.Bleed, { marginInlineStart: "200", marginInlineEnd: "200", children: /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris2.Divider, {}, void 0, !1, {
+          /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris3.Bleed, { marginInlineStart: "200", marginInlineEnd: "200", children: /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris3.Divider, {}, void 0, !1, {
             fileName: "app/routes/app.qrcodes.$id.jsx",
             lineNumber: 190,
             columnNumber: 19
@@ -1068,9 +1126,9 @@ function QRCodeForm() {
             lineNumber: 189,
             columnNumber: 17
           }, this),
-          /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris2.InlineStack, { gap: "500", align: "space-between", blockAlign: "start", children: [
+          /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris3.InlineStack, { gap: "500", align: "space-between", blockAlign: "start", children: [
             /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(
-              import_polaris2.ChoiceList,
+              import_polaris3.ChoiceList,
               {
                 title: "Scan destination",
                 choices: [
@@ -1097,7 +1155,7 @@ function QRCodeForm() {
               this
             ),
             qrCode.destinationUrl ? /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(
-              import_polaris2.Button,
+              import_polaris3.Button,
               {
                 variant: "plain",
                 url: qrCode.destinationUrl,
@@ -1136,24 +1194,24 @@ function QRCodeForm() {
         lineNumber: 135,
         columnNumber: 9
       }, this),
-      /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris2.Layout.Section, { variant: "oneThird", children: /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris2.Card, { children: [
-        /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris2.Text, { as: "h2", variant: "headingLg", children: "QR code" }, void 0, !1, {
+      /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris3.Layout.Section, { variant: "oneThird", children: /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris3.Card, { children: [
+        /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris3.Text, { as: "h2", variant: "headingLg", children: "QR code" }, void 0, !1, {
           fileName: "app/routes/app.qrcodes.$id.jsx",
           lineNumber: 227,
           columnNumber: 13
         }, this),
-        qrCode ? /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris2.EmptyState, { image: qrCode.image, imageContained: !0 }, void 0, !1, {
+        qrCode ? /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris3.EmptyState, { image: qrCode.image, imageContained: !0 }, void 0, !1, {
           fileName: "app/routes/app.qrcodes.$id.jsx",
           lineNumber: 231,
           columnNumber: 15
-        }, this) : /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris2.EmptyState, { image: "", children: "Your QR code will appear here after you save" }, void 0, !1, {
+        }, this) : /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris3.EmptyState, { image: "", children: "Your QR code will appear here after you save" }, void 0, !1, {
           fileName: "app/routes/app.qrcodes.$id.jsx",
           lineNumber: 233,
           columnNumber: 15
         }, this),
-        /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris2.BlockStack, { gap: "300", children: [
+        /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris3.BlockStack, { gap: "300", children: [
           /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(
-            import_polaris2.Button,
+            import_polaris3.Button,
             {
               disabled: !qrCode?.image,
               url: qrCode?.image,
@@ -1171,7 +1229,7 @@ function QRCodeForm() {
             this
           ),
           /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(
-            import_polaris2.Button,
+            import_polaris3.Button,
             {
               disabled: !qrCode.id,
               url: `/qrcodes/${qrCode.id}`,
@@ -1201,8 +1259,8 @@ function QRCodeForm() {
         lineNumber: 225,
         columnNumber: 9
       }, this),
-      /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris2.Layout.Section, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(
-        import_polaris2.PageActions,
+      /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(import_polaris3.Layout.Section, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime7.jsxDEV)(
+        import_polaris3.PageActions,
         {
           secondaryActions: [
             {
@@ -1253,7 +1311,7 @@ __export(app_settings_exports, {
   default: () => SettingsPage,
   loader: () => loader3
 });
-var import_polaris3 = require("@shopify/polaris"), import_node7 = require("@remix-run/node"), import_react13 = require("@remix-run/react"), import_react14 = require("react");
+var import_polaris4 = require("@shopify/polaris"), import_node7 = require("@remix-run/node"), import_react13 = require("@remix-run/react"), import_react14 = require("react");
 var import_jsx_dev_runtime8 = require("react/jsx-dev-runtime");
 async function action3({ request, params }) {
   let data = await request.formData(), object = {};
@@ -1284,7 +1342,7 @@ function SettingsPage() {
   }, handleTextFieldChange = function(value, id) {
     id == "dtc_date_available_message" ? setDtcDateAvailableMessage(value) : id == "dtc_processing_time_message" ? setDtcProcessingTimeMessage(value) : id == "b2b_date_available_message" ? setB2bDateAvailableMessage(value) : id == "b2b_processing_time_message" && setB2bProcessingTimeMessage(value);
   };
-  return /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(import_polaris3.Page, { children: [
+  return /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(import_polaris4.Page, { children: [
     /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)("h1", { children: [
       " ",
       buffer,
@@ -1299,10 +1357,10 @@ function SettingsPage() {
       lineNumber: 129,
       columnNumber: 7
     }, this),
-    /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(import_polaris3.Layout, { children: [
-      /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(import_polaris3.Layout.Section, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(import_polaris3.Form, { onSubmit: handleSubmit, children: /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(import_polaris3.FormLayout, { children: [
+    /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(import_polaris4.Layout, { children: [
+      /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(import_polaris4.Layout.Section, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(import_polaris4.Form, { onSubmit: handleSubmit, children: /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(import_polaris4.FormLayout, { children: [
         /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(
-          import_polaris3.RangeSlider,
+          import_polaris4.RangeSlider,
           {
             label: "Buffer days",
             value: buffer,
@@ -1323,7 +1381,7 @@ function SettingsPage() {
           this
         ),
         /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(
-          import_polaris3.RangeSlider,
+          import_polaris4.RangeSlider,
           {
             label: "Default processing time",
             value: defaultProcessingTime,
@@ -1344,7 +1402,7 @@ function SettingsPage() {
           this
         ),
         /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(
-          import_polaris3.RangeSlider,
+          import_polaris4.RangeSlider,
           {
             label: "DTC default shipping range",
             value: dtcDefaultShippingRange,
@@ -1365,7 +1423,7 @@ function SettingsPage() {
           this
         ),
         /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(
-          import_polaris3.RangeSlider,
+          import_polaris4.RangeSlider,
           {
             label: "B2B default shipping range",
             value: b2bDefaultShippingRange,
@@ -1386,7 +1444,7 @@ function SettingsPage() {
           this
         ),
         /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(
-          import_polaris3.TextField,
+          import_polaris4.TextField,
           {
             label: "DTC date available message",
             id: "dtc_date_available_message",
@@ -1405,7 +1463,7 @@ function SettingsPage() {
           this
         ),
         /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(
-          import_polaris3.TextField,
+          import_polaris4.TextField,
           {
             label: "DTC processing time message",
             id: "dtc_processing_time_message",
@@ -1424,7 +1482,7 @@ function SettingsPage() {
           this
         ),
         /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(
-          import_polaris3.TextField,
+          import_polaris4.TextField,
           {
             label: "B2B date available message",
             id: "b2b_date_available_message",
@@ -1443,7 +1501,7 @@ function SettingsPage() {
           this
         ),
         /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(
-          import_polaris3.TextField,
+          import_polaris4.TextField,
           {
             label: "B2B processing time message",
             id: "b2b_processing_time_message",
@@ -1461,7 +1519,7 @@ function SettingsPage() {
           },
           this
         ),
-        /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(import_polaris3.Button, { submit: !0, children: "Save settings" }, void 0, !1, {
+        /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(import_polaris4.Button, { submit: !0, children: "Save settings" }, void 0, !1, {
           fileName: "app/routes/app.settings.jsx",
           lineNumber: 207,
           columnNumber: 9
@@ -1479,14 +1537,14 @@ function SettingsPage() {
         lineNumber: 131,
         columnNumber: 9
       }, this),
-      /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(import_polaris3.Layout.Section, { variant: "oneThird", children: /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(import_polaris3.Card, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(import_polaris3.BlockStack, { gap: "200", children: [
-        /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(import_polaris3.Text, { as: "h2", variant: "headingMd", children: "Resources" }, void 0, !1, {
+      /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(import_polaris4.Layout.Section, { variant: "oneThird", children: /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(import_polaris4.Card, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(import_polaris4.BlockStack, { gap: "200", children: [
+        /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(import_polaris4.Text, { as: "h2", variant: "headingMd", children: "Resources" }, void 0, !1, {
           fileName: "app/routes/app.settings.jsx",
           lineNumber: 215,
           columnNumber: 15
         }, this),
-        /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(import_polaris3.List, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(import_polaris3.List.Item, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(
-          import_polaris3.Link,
+        /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(import_polaris4.List, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(import_polaris4.List.Item, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)(
+          import_polaris4.Link,
           {
             url: "https://shopify.dev/docs/apps/design-guidelines/navigation#app-nav",
             target: "_blank",
@@ -1577,7 +1635,7 @@ __export(app_index_exports, {
   loader: () => loader5
 });
 var import_node9 = require("@remix-run/node"), import_react16 = require("@remix-run/react");
-var import_polaris4 = require("@shopify/polaris");
+var import_polaris5 = require("@shopify/polaris");
 var import_polaris_icons2 = require("@shopify/polaris-icons"), import_jsx_dev_runtime10 = require("react/jsx-dev-runtime");
 async function loader5({ request }) {
   let { admin, session } = await authenticate.admin(request), qrCodes = await getQRCodes(session.shop, admin.graphql);
@@ -1586,7 +1644,7 @@ async function loader5({ request }) {
   });
 }
 var EmptyQRCodeState = ({ onAction }) => /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)(
-  import_polaris4.EmptyState,
+  import_polaris5.EmptyState,
   {
     heading: "Create unique QR codes for your product",
     action: {
@@ -1613,7 +1671,7 @@ function truncate(str, { length = 25 } = {}) {
   return str ? str.length <= length ? str : str.slice(0, length) + "\u2026" : "";
 }
 var QRTable = ({ qrCodes }) => /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)(
-  import_polaris4.IndexTable,
+  import_polaris5.IndexTable,
   {
     resourceName: {
       singular: "QR code",
@@ -1642,9 +1700,9 @@ var QRTable = ({ qrCodes }) => /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxD
     columnNumber: 3
   },
   this
-), QRTableRow = ({ qrCode }) => /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)(import_polaris4.IndexTable.Row, { id: qrCode.id, position: qrCode.id, children: [
-  /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)(import_polaris4.IndexTable.Cell, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)(
-    import_polaris4.Thumbnail,
+), QRTableRow = ({ qrCode }) => /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)(import_polaris5.IndexTable.Row, { id: qrCode.id, position: qrCode.id, children: [
+  /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)(import_polaris5.IndexTable.Cell, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)(
+    import_polaris5.Thumbnail,
     {
       source: qrCode.productImage || import_polaris_icons2.ImageMajor,
       alt: qrCode.productTitle,
@@ -1663,7 +1721,7 @@ var QRTable = ({ qrCodes }) => /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxD
     lineNumber: 71,
     columnNumber: 5
   }, this),
-  /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)(import_polaris4.IndexTable.Cell, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)(import_react16.Link, { to: `qrcodes/${qrCode.id}`, children: truncate(qrCode.title) }, void 0, !1, {
+  /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)(import_polaris5.IndexTable.Cell, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)(import_react16.Link, { to: `qrcodes/${qrCode.id}`, children: truncate(qrCode.title) }, void 0, !1, {
     fileName: "app/routes/app._index.jsx",
     lineNumber: 79,
     columnNumber: 7
@@ -1672,8 +1730,8 @@ var QRTable = ({ qrCodes }) => /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxD
     lineNumber: 78,
     columnNumber: 5
   }, this),
-  /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)(import_polaris4.IndexTable.Cell, { children: qrCode.productDeleted ? /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)(import_polaris4.InlineStack, { align: "start", gap: "200", children: [
-    /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)("span", { style: { width: "20px" }, children: /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)(import_polaris4.Icon, { source: import_polaris_icons2.DiamondAlertMajor, tone: "critical" }, void 0, !1, {
+  /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)(import_polaris5.IndexTable.Cell, { children: qrCode.productDeleted ? /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)(import_polaris5.InlineStack, { align: "start", gap: "200", children: [
+    /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)("span", { style: { width: "20px" }, children: /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)(import_polaris5.Icon, { source: import_polaris_icons2.DiamondAlertMajor, tone: "critical" }, void 0, !1, {
       fileName: "app/routes/app._index.jsx",
       lineNumber: 85,
       columnNumber: 13
@@ -1682,7 +1740,7 @@ var QRTable = ({ qrCodes }) => /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxD
       lineNumber: 84,
       columnNumber: 11
     }, this),
-    /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)(import_polaris4.Text, { tone: "critical", as: "span", children: "product has been deleted" }, void 0, !1, {
+    /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)(import_polaris5.Text, { tone: "critical", as: "span", children: "product has been deleted" }, void 0, !1, {
       fileName: "app/routes/app._index.jsx",
       lineNumber: 87,
       columnNumber: 11
@@ -1696,12 +1754,12 @@ var QRTable = ({ qrCodes }) => /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxD
     lineNumber: 81,
     columnNumber: 5
   }, this),
-  /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)(import_polaris4.IndexTable.Cell, { children: new Date(qrCode.createdAt).toDateString() }, void 0, !1, {
+  /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)(import_polaris5.IndexTable.Cell, { children: new Date(qrCode.createdAt).toDateString() }, void 0, !1, {
     fileName: "app/routes/app._index.jsx",
     lineNumber: 95,
     columnNumber: 5
   }, this),
-  /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)(import_polaris4.IndexTable.Cell, { children: qrCode.scans }, void 0, !1, {
+  /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)(import_polaris5.IndexTable.Cell, { children: qrCode.scans }, void 0, !1, {
     fileName: "app/routes/app._index.jsx",
     lineNumber: 98,
     columnNumber: 5
@@ -1713,7 +1771,7 @@ var QRTable = ({ qrCodes }) => /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxD
 }, this);
 function Index() {
   let { qrCodes } = (0, import_react16.useLoaderData)(), navigate = (0, import_react16.useNavigate)();
-  return /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)(import_polaris4.Page, { children: [
+  return /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)(import_polaris5.Page, { children: [
     /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)("ui-title-bar", { title: "QR codes", children: /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)("button", { variant: "primary", onClick: () => navigate("/app/qrcodes/new"), children: "Create QR code" }, void 0, !1, {
       fileName: "app/routes/app._index.jsx",
       lineNumber: 109,
@@ -1723,7 +1781,7 @@ function Index() {
       lineNumber: 108,
       columnNumber: 7
     }, this),
-    /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)(import_polaris4.Layout, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)(import_polaris4.Layout.Section, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)(import_polaris4.Card, { padding: "0", children: qrCodes.length === 0 ? /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)(EmptyQRCodeState, { onAction: () => navigate("qrcodes/new") }, void 0, !1, {
+    /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)(import_polaris5.Layout, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)(import_polaris5.Layout.Section, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)(import_polaris5.Card, { padding: "0", children: qrCodes.length === 0 ? /* @__PURE__ */ (0, import_jsx_dev_runtime10.jsxDEV)(EmptyQRCodeState, { onAction: () => navigate("qrcodes/new") }, void 0, !1, {
       fileName: "app/routes/app._index.jsx",
       lineNumber: 117,
       columnNumber: 15
@@ -1759,7 +1817,7 @@ __export(route_exports, {
   links: () => links,
   loader: () => loader6
 });
-var import_react17 = require("react"), import_node10 = require("@remix-run/node"), import_polaris5 = require("@shopify/polaris"), import_react18 = require("@remix-run/react");
+var import_react17 = require("react"), import_node10 = require("@remix-run/node"), import_polaris6 = require("@shopify/polaris"), import_react18 = require("@remix-run/react");
 
 // node_modules/@shopify/polaris/build/esm/styles.css
 var styles_default = "/build/_assets/styles-XBXYCZPP.css";
@@ -1785,14 +1843,14 @@ var import_jsx_dev_runtime11 = require("react/jsx-dev-runtime"), links = () => [
 };
 function Auth() {
   let loaderData = (0, import_react18.useLoaderData)(), actionData = (0, import_react18.useActionData)(), [shop, setShop] = (0, import_react17.useState)(""), { errors } = actionData || loaderData;
-  return /* @__PURE__ */ (0, import_jsx_dev_runtime11.jsxDEV)(import_polaris5.AppProvider, { i18n: loaderData.polarisTranslations, children: /* @__PURE__ */ (0, import_jsx_dev_runtime11.jsxDEV)(import_polaris5.Page, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime11.jsxDEV)(import_polaris5.Card, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime11.jsxDEV)(import_react18.Form, { method: "post", children: /* @__PURE__ */ (0, import_jsx_dev_runtime11.jsxDEV)(import_polaris5.FormLayout, { children: [
-    /* @__PURE__ */ (0, import_jsx_dev_runtime11.jsxDEV)(import_polaris5.Text, { variant: "headingMd", as: "h2", children: "Log in" }, void 0, !1, {
+  return /* @__PURE__ */ (0, import_jsx_dev_runtime11.jsxDEV)(import_polaris6.AppProvider, { i18n: loaderData.polarisTranslations, children: /* @__PURE__ */ (0, import_jsx_dev_runtime11.jsxDEV)(import_polaris6.Page, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime11.jsxDEV)(import_polaris6.Card, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime11.jsxDEV)(import_react18.Form, { method: "post", children: /* @__PURE__ */ (0, import_jsx_dev_runtime11.jsxDEV)(import_polaris6.FormLayout, { children: [
+    /* @__PURE__ */ (0, import_jsx_dev_runtime11.jsxDEV)(import_polaris6.Text, { variant: "headingMd", as: "h2", children: "Log in" }, void 0, !1, {
       fileName: "app/routes/auth.login/route.jsx",
       lineNumber: 48,
       columnNumber: 15
     }, this),
     /* @__PURE__ */ (0, import_jsx_dev_runtime11.jsxDEV)(
-      import_polaris5.TextField,
+      import_polaris6.TextField,
       {
         type: "text",
         name: "shop",
@@ -1812,7 +1870,7 @@ function Auth() {
       },
       this
     ),
-    /* @__PURE__ */ (0, import_jsx_dev_runtime11.jsxDEV)(import_polaris5.Button, { submit: !0, children: "Log in" }, void 0, !1, {
+    /* @__PURE__ */ (0, import_jsx_dev_runtime11.jsxDEV)(import_polaris6.Button, { submit: !0, children: "Log in" }, void 0, !1, {
       fileName: "app/routes/auth.login/route.jsx",
       lineNumber: 61,
       columnNumber: 15
@@ -2012,38 +2070,38 @@ var import_jsx_dev_runtime13 = require("react/jsx-dev-runtime"), links3 = () => 
 };
 function App3() {
   let { setSettings } = (0, import_react22.useContext)(MyContext), { setDbProducts } = (0, import_react22.useContext)(MyContext), { setDbProductsFormatted } = (0, import_react22.useContext)(MyContext), loadData = (0, import_react20.useLoaderData)(), { apiKey, dataBaseProducts, settingsData } = loadData;
-  return (0, import_react22.useEffect)(() => {
+  return console.log("dataBaseProducts", dataBaseProducts), (0, import_react22.useEffect)(() => {
     setDbProducts(dataBaseProducts), setSettings(settingsData), setDbProductsFormatted(formatDbProducts(dataBaseProducts));
   }, []), /* @__PURE__ */ (0, import_jsx_dev_runtime13.jsxDEV)(import_react21.AppProvider, { isEmbeddedApp: !0, apiKey, children: [
     /* @__PURE__ */ (0, import_jsx_dev_runtime13.jsxDEV)("ui-nav-menu", { children: [
       /* @__PURE__ */ (0, import_jsx_dev_runtime13.jsxDEV)(import_react20.Link, { to: "/app", rel: "home", children: "Home" }, void 0, !1, {
         fileName: "app/routes/app.jsx",
-        lineNumber: 47,
+        lineNumber: 49,
         columnNumber: 11
       }, this),
       /* @__PURE__ */ (0, import_jsx_dev_runtime13.jsxDEV)(import_react20.Link, { to: "/app/settings", children: "Settings" }, void 0, !1, {
         fileName: "app/routes/app.jsx",
-        lineNumber: 50,
+        lineNumber: 52,
         columnNumber: 11
       }, this),
       /* @__PURE__ */ (0, import_jsx_dev_runtime13.jsxDEV)(import_react20.Link, { to: "/app/variantshipdatedata", children: "Variant data" }, void 0, !1, {
         fileName: "app/routes/app.jsx",
-        lineNumber: 51,
+        lineNumber: 53,
         columnNumber: 11
       }, this)
     ] }, void 0, !0, {
       fileName: "app/routes/app.jsx",
-      lineNumber: 46,
+      lineNumber: 48,
       columnNumber: 9
     }, this),
     /* @__PURE__ */ (0, import_jsx_dev_runtime13.jsxDEV)(import_react20.Outlet, {}, void 0, !1, {
       fileName: "app/routes/app.jsx",
-      lineNumber: 53,
+      lineNumber: 55,
       columnNumber: 9
     }, this)
   ] }, void 0, !0, {
     fileName: "app/routes/app.jsx",
-    lineNumber: 45,
+    lineNumber: 47,
     columnNumber: 5
   }, this);
 }
@@ -2053,7 +2111,7 @@ function ErrorBoundary() {
 var headers = (headersArgs) => import_server4.boundary.headers(headersArgs);
 
 // server-assets-manifest:@remix-run/dev/assets-manifest
-var assets_manifest_default = { entry: { module: "/build/entry.client-75E7MSXU.js", imports: ["/build/_shared/chunk-ZWGWGGVF.js", "/build/_shared/chunk-GIAAE3CH.js", "/build/_shared/chunk-5ACAZX6N.js", "/build/_shared/chunk-DYYXLKDN.js", "/build/_shared/chunk-XU7DNSPJ.js", "/build/_shared/chunk-BOXFZXVX.js", "/build/_shared/chunk-UWV35TSL.js", "/build/_shared/chunk-PNG5AS42.js"] }, routes: { root: { id: "root", parentId: void 0, path: "", index: void 0, caseSensitive: void 0, module: "/build/root-7LZCFIO5.js", imports: ["/build/_shared/chunk-3YYNPEJ7.js"], hasAction: !1, hasLoader: !1, hasErrorBoundary: !1 }, "routes/_index": { id: "routes/_index", parentId: "root", path: void 0, index: !0, caseSensitive: void 0, module: "/build/routes/_index-S57J2XXY.js", imports: ["/build/_shared/chunk-3GJP5LZF.js", "/build/_shared/chunk-G7CHZRZX.js"], hasAction: !1, hasLoader: !0, hasErrorBoundary: !1 }, "routes/app": { id: "routes/app", parentId: "root", path: "app", index: void 0, caseSensitive: void 0, module: "/build/routes/app-LOWTVGIH.js", imports: ["/build/_shared/chunk-NMZL6IDN.js", "/build/_shared/chunk-MIBD2XN6.js", "/build/_shared/chunk-JE6M3B2S.js", "/build/_shared/chunk-SU66BP3D.js", "/build/_shared/chunk-C3NP7DHP.js", "/build/_shared/chunk-XEU7UHRU.js", "/build/_shared/chunk-G7CHZRZX.js"], hasAction: !1, hasLoader: !0, hasErrorBoundary: !0 }, "routes/app._index": { id: "routes/app._index", parentId: "routes/app", path: void 0, index: !0, caseSensitive: void 0, module: "/build/routes/app._index-ZQ4IEROT.js", imports: ["/build/_shared/chunk-3EYAZZDZ.js"], hasAction: !1, hasLoader: !0, hasErrorBoundary: !1 }, "routes/app.products.$id": { id: "routes/app.products.$id", parentId: "routes/app", path: "products/:id", index: void 0, caseSensitive: void 0, module: "/build/routes/app.products.$id-7Q76JGHA.js", imports: ["/build/_shared/chunk-3YYNPEJ7.js"], hasAction: !1, hasLoader: !1, hasErrorBoundary: !1 }, "routes/app.qrcodes.$id": { id: "routes/app.qrcodes.$id", parentId: "routes/app", path: "qrcodes/:id", index: void 0, caseSensitive: void 0, module: "/build/routes/app.qrcodes.$id-M2VNSHNP.js", imports: ["/build/_shared/chunk-3EYAZZDZ.js", "/build/_shared/chunk-DXZPNPAJ.js"], hasAction: !0, hasLoader: !0, hasErrorBoundary: !1 }, "routes/app.settings": { id: "routes/app.settings", parentId: "routes/app", path: "settings", index: void 0, caseSensitive: void 0, module: "/build/routes/app.settings-XOC433I6.js", imports: ["/build/_shared/chunk-36GESDOS.js", "/build/_shared/chunk-3YYNPEJ7.js"], hasAction: !0, hasLoader: !0, hasErrorBoundary: !1 }, "routes/app.variantshipdatedata": { id: "routes/app.variantshipdatedata", parentId: "routes/app", path: "variantshipdatedata", index: void 0, caseSensitive: void 0, module: "/build/routes/app.variantshipdatedata-X54YOL4I.js", imports: ["/build/_shared/chunk-36GESDOS.js", "/build/_shared/chunk-3YYNPEJ7.js"], hasAction: !0, hasLoader: !1, hasErrorBoundary: !1 }, "routes/auth.$": { id: "routes/auth.$", parentId: "root", path: "auth/*", index: void 0, caseSensitive: void 0, module: "/build/routes/auth.$-4B5WQABX.js", imports: void 0, hasAction: !1, hasLoader: !0, hasErrorBoundary: !1 }, "routes/auth.login": { id: "routes/auth.login", parentId: "root", path: "auth/login", index: void 0, caseSensitive: void 0, module: "/build/routes/auth.login-GDKS6R5I.js", imports: ["/build/_shared/chunk-3GJP5LZF.js", "/build/_shared/chunk-MIBD2XN6.js", "/build/_shared/chunk-XEU7UHRU.js", "/build/_shared/chunk-G7CHZRZX.js"], hasAction: !0, hasLoader: !0, hasErrorBoundary: !1 }, "routes/qrcodes.$id": { id: "routes/qrcodes.$id", parentId: "root", path: "qrcodes/:id", index: void 0, caseSensitive: void 0, module: "/build/routes/qrcodes.$id-ZXD26OIE.js", imports: ["/build/_shared/chunk-DXZPNPAJ.js", "/build/_shared/chunk-G7CHZRZX.js"], hasAction: !1, hasLoader: !0, hasErrorBoundary: !1 }, "routes/qrcodes.$id.scan": { id: "routes/qrcodes.$id.scan", parentId: "routes/qrcodes.$id", path: "scan", index: void 0, caseSensitive: void 0, module: "/build/routes/qrcodes.$id.scan-2CY3SXY7.js", imports: void 0, hasAction: !1, hasLoader: !0, hasErrorBoundary: !1 }, "routes/webhooks": { id: "routes/webhooks", parentId: "root", path: "webhooks", index: void 0, caseSensitive: void 0, module: "/build/routes/webhooks-JFV2P4HI.js", imports: void 0, hasAction: !0, hasLoader: !1, hasErrorBoundary: !1 } }, version: "9ec87ab8", hmr: { runtime: "/build/_shared/chunk-DYYXLKDN.js", timestamp: 1700499958430 }, url: "/build/manifest-9EC87AB8.js" };
+var assets_manifest_default = { entry: { module: "/build/entry.client-V3C7XBJ5.js", imports: ["/build/_shared/chunk-ZWGWGGVF.js", "/build/_shared/chunk-GIAAE3CH.js", "/build/_shared/chunk-DXLBAGQH.js", "/build/_shared/chunk-DYYXLKDN.js", "/build/_shared/chunk-XU7DNSPJ.js", "/build/_shared/chunk-BOXFZXVX.js", "/build/_shared/chunk-UWV35TSL.js", "/build/_shared/chunk-PNG5AS42.js"] }, routes: { root: { id: "root", parentId: void 0, path: "", index: void 0, caseSensitive: void 0, module: "/build/root-JQHKHMN6.js", imports: ["/build/_shared/chunk-KP4DVPAH.js"], hasAction: !1, hasLoader: !1, hasErrorBoundary: !1 }, "routes/_index": { id: "routes/_index", parentId: "root", path: void 0, index: !0, caseSensitive: void 0, module: "/build/routes/_index-M3DX73F2.js", imports: ["/build/_shared/chunk-3GJP5LZF.js", "/build/_shared/chunk-G7CHZRZX.js"], hasAction: !1, hasLoader: !0, hasErrorBoundary: !1 }, "routes/app": { id: "routes/app", parentId: "root", path: "app", index: void 0, caseSensitive: void 0, module: "/build/routes/app-ZJ56H7SG.js", imports: ["/build/_shared/chunk-NMZL6IDN.js", "/build/_shared/chunk-MIBD2XN6.js", "/build/_shared/chunk-2MOAIH4J.js", "/build/_shared/chunk-SU66BP3D.js", "/build/_shared/chunk-C3NP7DHP.js", "/build/_shared/chunk-2SC4JJIU.js", "/build/_shared/chunk-G7CHZRZX.js"], hasAction: !1, hasLoader: !0, hasErrorBoundary: !0 }, "routes/app._index": { id: "routes/app._index", parentId: "routes/app", path: void 0, index: !0, caseSensitive: void 0, module: "/build/routes/app._index-JCSLTTAP.js", imports: ["/build/_shared/chunk-3EYAZZDZ.js"], hasAction: !1, hasLoader: !0, hasErrorBoundary: !1 }, "routes/app.products.$id": { id: "routes/app.products.$id", parentId: "routes/app", path: "products/:id", index: void 0, caseSensitive: void 0, module: "/build/routes/app.products.$id-M5WXLABA.js", imports: ["/build/_shared/chunk-KP4DVPAH.js"], hasAction: !1, hasLoader: !1, hasErrorBoundary: !1 }, "routes/app.qrcodes.$id": { id: "routes/app.qrcodes.$id", parentId: "routes/app", path: "qrcodes/:id", index: void 0, caseSensitive: void 0, module: "/build/routes/app.qrcodes.$id-JYJMCVBJ.js", imports: ["/build/_shared/chunk-3EYAZZDZ.js", "/build/_shared/chunk-DXZPNPAJ.js"], hasAction: !0, hasLoader: !0, hasErrorBoundary: !1 }, "routes/app.settings": { id: "routes/app.settings", parentId: "routes/app", path: "settings", index: void 0, caseSensitive: void 0, module: "/build/routes/app.settings-2OTJEPOZ.js", imports: ["/build/_shared/chunk-4G72EFYM.js", "/build/_shared/chunk-KP4DVPAH.js"], hasAction: !0, hasLoader: !0, hasErrorBoundary: !1 }, "routes/app.variantshipdatedata": { id: "routes/app.variantshipdatedata", parentId: "routes/app", path: "variantshipdatedata", index: void 0, caseSensitive: void 0, module: "/build/routes/app.variantshipdatedata-JHBOBNOX.js", imports: ["/build/_shared/chunk-4G72EFYM.js", "/build/_shared/chunk-KP4DVPAH.js"], hasAction: !0, hasLoader: !1, hasErrorBoundary: !1 }, "routes/auth.$": { id: "routes/auth.$", parentId: "root", path: "auth/*", index: void 0, caseSensitive: void 0, module: "/build/routes/auth.$-4B5WQABX.js", imports: void 0, hasAction: !1, hasLoader: !0, hasErrorBoundary: !1 }, "routes/auth.login": { id: "routes/auth.login", parentId: "root", path: "auth/login", index: void 0, caseSensitive: void 0, module: "/build/routes/auth.login-7M4RRCEG.js", imports: ["/build/_shared/chunk-3GJP5LZF.js", "/build/_shared/chunk-MIBD2XN6.js", "/build/_shared/chunk-2SC4JJIU.js", "/build/_shared/chunk-G7CHZRZX.js"], hasAction: !0, hasLoader: !0, hasErrorBoundary: !1 }, "routes/qrcodes.$id": { id: "routes/qrcodes.$id", parentId: "root", path: "qrcodes/:id", index: void 0, caseSensitive: void 0, module: "/build/routes/qrcodes.$id-DTYB2F5E.js", imports: ["/build/_shared/chunk-DXZPNPAJ.js", "/build/_shared/chunk-G7CHZRZX.js"], hasAction: !1, hasLoader: !0, hasErrorBoundary: !1 }, "routes/qrcodes.$id.scan": { id: "routes/qrcodes.$id.scan", parentId: "routes/qrcodes.$id", path: "scan", index: void 0, caseSensitive: void 0, module: "/build/routes/qrcodes.$id.scan-2CY3SXY7.js", imports: void 0, hasAction: !1, hasLoader: !0, hasErrorBoundary: !1 }, "routes/webhooks": { id: "routes/webhooks", parentId: "root", path: "webhooks", index: void 0, caseSensitive: void 0, module: "/build/routes/webhooks-JFV2P4HI.js", imports: void 0, hasAction: !0, hasLoader: !1, hasErrorBoundary: !1 } }, version: "d97e4bd7", hmr: { runtime: "/build/_shared/chunk-DYYXLKDN.js", timestamp: 1700566549073 }, url: "/build/manifest-D97E4BD7.js" };
 
 // server-entry-module:@remix-run/dev/server-build
 var mode = "development", assetsBuildDirectory = "public/build", future = { v3_fetcherPersist: !1 }, publicPath = "/build/", entry = { module: entry_server_exports }, routes = {

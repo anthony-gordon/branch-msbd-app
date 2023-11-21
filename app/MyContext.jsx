@@ -19,7 +19,8 @@ const MyContextProvider = ({ children }) => {
   const [dbProductsFormatted, setDbProductsFormatted] = useState({});
   const [updating, setUpdating] = useState(false)
   const [amountToUpdate, setAmountToUpdate] = useState(0)
-  const [amountUpdated, setAmountUpdated] = useState(0);
+  const [amountLeftToUpdate, setAmountLeftToUpdate] = useState(0);
+  const [percentageUpdated, setPercentageUpdated] = useState(100);
 
 
 
@@ -40,7 +41,8 @@ const MyContextProvider = ({ children }) => {
         dbProductsFormatted, setDbProductsFormatted,
         updating, setUpdating,
         amountToUpdate, setAmountToUpdate,
-        amountUpdated, setAmountUpdated
+        amountLeftToUpdate, setAmountLeftToUpdate,
+        percentageUpdated, setPercentageUpdated
       }}>
       {children}
     </MyContext.Provider>

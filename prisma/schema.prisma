@@ -35,6 +35,7 @@ model variantShipDateData {
   b2bProduct       Boolean  @default(false)
   bundleProduct    Boolean  @default(false)
   updated          DateTime @default(now())
+  updatedRecord    String @default("")
 }
 
 model settings {
