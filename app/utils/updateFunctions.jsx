@@ -1,5 +1,6 @@
 import db from "./../db.server";
 
+
 async function metafieldUpdateGraphQLCall(variantId, variantShippingMessage, admin, metafieldId) {
     const response = await admin.graphql(
         metafieldId && metafieldId !== '' ?
@@ -203,3 +204,12 @@ export async function settingsUpdate(data){
   }
 
 
+  export async function dbUpdateRecord(){
+    let currentTime = new Date();
+    const user = await db.updates.create({
+            data: {
+            updated: `${currentTime}`,
+            },
+        })
+    return user
+}

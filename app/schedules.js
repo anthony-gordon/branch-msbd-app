@@ -9,14 +9,16 @@ async function dbUpdateRecord(){
               })
         return user
 }
-
-module.exports.eat_breakfast = async function()
+const eat_breakfast = async function()
 {
         const word = await dbUpdateRecord();
         console.log('Eating breakfast...');
         console.log('word: ',  word)
-        console.log('done.');
+        console.log('done.', db.updates);
+        return 'done'
 }
+
+module.exports = {eat_breakfast};
 
 require('make-runnable');
 

@@ -8,7 +8,7 @@ import {
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
 import { restResources } from "@shopify/shopify-api/rest/admin/2023-10";
 // import prisma from "./db.server";
-const  prisma  = require('./db.server.js')
+const prisma  = require('./db.server.js')
 
 
 const shopify = shopifyApp({
