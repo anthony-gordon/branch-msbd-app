@@ -2,7 +2,7 @@
 
 name = "branch-msbd-app"
 client_id = "2377268e6e57bb7ea9b46fadf7b51563"
-application_url = "https://heat-armed-glow-geometry.trycloudflare.com"
+application_url = "https://trusted-acdbentity-seemed-published.trycloudflare.com"
 embedded = true
 
 [access_scopes]
@@ -11,10 +11,10 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://heat-armed-glow-geometry.trycloudflare.com/auth/callback",
-  "https://heat-armed-glow-geometry.trycloudflare.com/auth/shopify/callback",
-  "https://heat-armed-glow-geometry.trycloudflare.com/api/auth/callback",
-  "https://heat-armed-glow-geometry.trycloudflare.com/.shopify/graphiql/auth/callback"
+  "https://trusted-acdbentity-seemed-published.trycloudflare.com/auth/callback",
+  "https://trusted-acdbentity-seemed-published.trycloudflare.com/auth/shopify/callback",
+  "https://trusted-acdbentity-seemed-published.trycloudflare.com/api/auth/callback",
+  "https://trusted-acdbentity-seemed-published.trycloudflare.com/.shopify/graphiql/auth/callback"
 ]
 
 [webhooks]
