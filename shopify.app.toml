@@ -2,7 +2,7 @@
 
 name = "branch-msbd-app"
 client_id = "2377268e6e57bb7ea9b46fadf7b51563"
-application_url = "https://calgary-quest-sense-exceptional.trycloudflare.com"
+application_url = "https://dis-beef-reduced-vital.trycloudflare.com"
 embedded = true
 
 [access_scopes]
@@ -11,10 +11,10 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://calgary-quest-sense-exceptional.trycloudflare.com/auth/callback",
-  "https://calgary-quest-sense-exceptional.trycloudflare.com/auth/shopify/callback",
-  "https://calgary-quest-sense-exceptional.trycloudflare.com/api/auth/callback",
-  "https://calgary-quest-sense-exceptional.trycloudflare.com/.shopify/graphiql/auth/callback"
+  "https://dis-beef-reduced-vital.trycloudflare.com/auth/callback",
+  "https://dis-beef-reduced-vital.trycloudflare.com/auth/shopify/callback",
+  "https://dis-beef-reduced-vital.trycloudflare.com/api/auth/callback",
+  "https://dis-beef-reduced-vital.trycloudflare.com/.shopify/graphiql/auth/callback"
 ]
 
 [webhooks]
