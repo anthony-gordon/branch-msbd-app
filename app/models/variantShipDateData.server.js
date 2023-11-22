@@ -9,3 +9,8 @@ export async function fetchSettings() {
     const settings = await db.settings.findMany();
     return settings
 }
+
+export async function fetchUpdates() {
+    const updates = await db.updates.findMany();
+    return updates
+}

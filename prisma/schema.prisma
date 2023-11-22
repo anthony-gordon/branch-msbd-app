@@ -49,3 +49,8 @@ model settings {
   dtcDefaultShippingRange          Int      @default(1)
   b2bDefaultShippingRange          Int      @default(1)
 }
+
+model updates {
+  id                               Int      @id @default(autoincrement())
+  updated                          String
+}
