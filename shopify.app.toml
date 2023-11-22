@@ -2,7 +2,7 @@
 
 name = "branch-msbd-app"
 client_id = "2377268e6e57bb7ea9b46fadf7b51563"
-application_url = "https://absence-church-rating-tile.trycloudflare.com"
+application_url = "https://branch-msbd-app-cee2a8728d5a.herokuapp.com"
 embedded = true
 
 [access_scopes]
@@ -11,10 +11,10 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://absence-church-rating-tile.trycloudflare.com/auth/callback",
-  "https://absence-church-rating-tile.trycloudflare.com/auth/shopify/callback",
-  "https://absence-church-rating-tile.trycloudflare.com/api/auth/callback",
-  "https://absence-church-rating-tile.trycloudflare.com/.shopify/graphiql/auth/callback"
+  "https://branch-msbd-app-cee2a8728d5a.herokuapp.com/auth/callback",
+  "https://branch-msbd-app-cee2a8728d5a.herokuapp.com/auth/shopify/callback",
+  "https://branch-msbd-app-cee2a8728d5a.herokuapp.com/api/auth/callback",
+  "https://branch-msbd-app-cee2a8728d5a.herokuapp.com/.shopify/graphiql/auth/callback"
 ]
 
 [webhooks]
