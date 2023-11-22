@@ -14,7 +14,7 @@ module.exports.eat_breakfast = async function()
 {
         const word = await dbUpdateRecord();
         console.log('Eating breakfast...');
-        // console.log('word: ',  word)
+        console.log('word: ',  word)
         console.log('done.');
 }
 
