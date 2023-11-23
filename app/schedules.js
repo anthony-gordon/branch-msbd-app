@@ -21,5 +21,3 @@ const eat_breakfast = async function()
 }
 
 module.exports = {eat_breakfast};
-
-require('make-runnable');
