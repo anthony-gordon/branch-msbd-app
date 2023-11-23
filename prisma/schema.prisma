@@ -6,8 +6,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:dev.sqlite"
 }
 
 model Session {
@@ -35,7 +35,7 @@ model variantShipDateData {
   b2bProduct       Boolean  @default(false)
   bundleProduct    Boolean  @default(false)
   updated          DateTime @default(now())
-  updatedRecord    String   @default("")
+  updatedRecord    String @default("")
 }
 
 model settings {
