@@ -1380,30 +1380,34 @@ function SettingsPage() {
 // app/routes/app.updates.jsx
 var app_updates_exports = {};
 __export(app_updates_exports, {
+  action: () => action3,
   default: () => Updates,
-  handleClick: () => handleClick,
   loader: () => loader4
 });
 var import_react15 = require("@remix-run/react"), import_node7 = require("@remix-run/node");
 var import_jsx_dev_runtime8 = require("react/jsx-dev-runtime"), loader4 = async ({ request }) => {
   let updateData = await fetchUpdates();
   return (0, import_node7.json)({ updateData });
-}, handleClick = async () => {
+}, action3 = async ({ request }) => {
   let updates = await dbUpdateRecord();
-  console.log("updates", updates);
+  return console.log("updates", updates), (0, import_node7.json)({ updates });
 };
 function Updates() {
-  let loadData = (0, import_react15.useLoaderData)(), { updateData } = loadData;
-  return console.log("updateData", updateData), /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)("div", { class: "Updated", children: [
+  let submit = (0, import_react15.useSubmit)(), handleClick = () => {
+    submit({}, { method: "post" });
+  }, loadData = (0, import_react15.useLoaderData)(), actionData = (0, import_react15.useActionData)();
+  console.log("actionData", actionData);
+  let { updateData } = loadData;
+  return console.log("updateData", updateData), /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)("div", { className: "Updated", children: [
     "Updates",
     /* @__PURE__ */ (0, import_jsx_dev_runtime8.jsxDEV)("button", { onClick: handleClick, children: "Update" }, void 0, !1, {
       fileName: "app/routes/app.updates.jsx",
-      lineNumber: 31,
+      lineNumber: 45,
       columnNumber: 13
     }, this)
   ] }, void 0, !0, {
     fileName: "app/routes/app.updates.jsx",
-    lineNumber: 30,
+    lineNumber: 44,
     columnNumber: 9
   }, this);
 }
@@ -1446,7 +1450,7 @@ function QRCode() {
 // app/routes/app._index.jsx
 var app_index_exports = {};
 __export(app_index_exports, {
-  action: () => action3,
+  action: () => action4,
   default: () => Index
 });
 var import_node9 = require("@remix-run/node"), import_react19 = require("@remix-run/react");
@@ -1712,7 +1716,7 @@ function ProductsView() {
 
 // app/routes/app._index.jsx
 var import_polaris6 = require("@shopify/polaris"), import_jsx_dev_runtime11 = require("react/jsx-dev-runtime");
-async function action3({ request, params }) {
+async function action4({ request, params }) {
   let { admin } = await shopify_server_default.authenticate.admin(request), [bulkOperation] = await Promise.all([
     startBulkOperation(admin)
   ]), url = await fetchBulkOperationData(bulkOperation, admin), products = await fetchProductsFromUrl(url.data.node.url), data = await request.formData(), array = [], submission_type = "", settings = {}, dbShipDateData = {}, type = "", currentProductDataArray = [];
@@ -1858,7 +1862,7 @@ function Index() {
 // app/routes/auth.login/route.jsx
 var route_exports = {};
 __export(route_exports, {
-  action: () => action4,
+  action: () => action5,
   default: () => Auth,
   links: () => links,
   loader: () => loader6
@@ -1881,7 +1885,7 @@ var import_jsx_dev_runtime12 = require("react/jsx-dev-runtime"), links = () => [
     errors,
     polarisTranslations: require("@shopify/polaris/locales/en.json")
   });
-}, action4 = async ({ request }) => {
+}, action5 = async ({ request }) => {
   let errors = loginErrorMessage(await login(request));
   return (0, import_node10.json)({
     errors
@@ -1947,9 +1951,9 @@ function Auth() {
 // app/routes/webhooks.jsx
 var webhooks_exports = {};
 __export(webhooks_exports, {
-  action: () => action5
+  action: () => action6
 });
-var import_db7 = __toESM(require_db_server()), action5 = async ({ request }) => {
+var import_db7 = __toESM(require_db_server()), action6 = async ({ request }) => {
   let { topic, shop, session, admin, payload } = await authenticate.webhook(
     request
   );
@@ -2152,7 +2156,7 @@ function ErrorBoundary() {
 var headers = (headersArgs) => import_server4.boundary.headers(headersArgs);
 
 // server-assets-manifest:@remix-run/dev/assets-manifest
-var assets_manifest_default = { entry: { module: "/build/entry.client-5NOSUHKK.js", imports: ["/build/_shared/chunk-ZWGWGGVF.js", "/build/_shared/chunk-GIAAE3CH.js", "/build/_shared/chunk-Y6DQSA33.js", "/build/_shared/chunk-DYYXLKDN.js", "/build/_shared/chunk-UWV35TSL.js", "/build/_shared/chunk-XU7DNSPJ.js", "/build/_shared/chunk-BOXFZXVX.js", "/build/_shared/chunk-PNG5AS42.js"] }, routes: { root: { id: "root", parentId: void 0, path: "", index: void 0, caseSensitive: void 0, module: "/build/root-62AAMQL6.js", imports: ["/build/_shared/chunk-KP4DVPAH.js"], hasAction: !1, hasLoader: !1, hasErrorBoundary: !1 }, "routes/_index": { id: "routes/_index", parentId: "root", path: void 0, index: !0, caseSensitive: void 0, module: "/build/routes/_index-F63H7M7K.js", imports: ["/build/_shared/chunk-3GJP5LZF.js", "/build/_shared/chunk-G7CHZRZX.js"], hasAction: !1, hasLoader: !0, hasErrorBoundary: !1 }, "routes/app": { id: "routes/app", parentId: "root", path: "app", index: void 0, caseSensitive: void 0, module: "/build/routes/app-LQJA363D.js", imports: ["/build/_shared/chunk-NMZL6IDN.js", "/build/_shared/chunk-MIBD2XN6.js", "/build/_shared/chunk-2MOAIH4J.js", "/build/_shared/chunk-SU66BP3D.js", "/build/_shared/chunk-6FWHY3LN.js", "/build/_shared/chunk-C3NP7DHP.js", "/build/_shared/chunk-G7CHZRZX.js"], hasAction: !1, hasLoader: !0, hasErrorBoundary: !0 }, "routes/app._index": { id: "routes/app._index", parentId: "routes/app", path: void 0, index: !0, caseSensitive: void 0, module: "/build/routes/app._index-ISOLQKKO.js", imports: ["/build/_shared/chunk-KP4DVPAH.js", "/build/_shared/chunk-B4RN24H7.js"], hasAction: !0, hasLoader: !1, hasErrorBoundary: !1 }, "routes/app.product.$id.variants.$variantId": { id: "routes/app.product.$id.variants.$variantId", parentId: "routes/app", path: "product/:id/variants/:variantId", index: void 0, caseSensitive: void 0, module: "/build/routes/app.product.$id.variants.$variantId-26AKKIK6.js", imports: ["/build/_shared/chunk-KP4DVPAH.js"], hasAction: !1, hasLoader: !1, hasErrorBoundary: !1 }, "routes/app.products.$id": { id: "routes/app.products.$id", parentId: "routes/app", path: "products/:id", index: void 0, caseSensitive: void 0, module: "/build/routes/app.products.$id-4TDYCT3A.js", imports: ["/build/_shared/chunk-KP4DVPAH.js"], hasAction: !1, hasLoader: !1, hasErrorBoundary: !1 }, "routes/app.qrcodes.$id": { id: "routes/app.qrcodes.$id", parentId: "routes/app", path: "qrcodes/:id", index: void 0, caseSensitive: void 0, module: "/build/routes/app.qrcodes.$id-P2CYNJ3H.js", imports: ["/build/_shared/chunk-DXZPNPAJ.js"], hasAction: !0, hasLoader: !0, hasErrorBoundary: !1 }, "routes/app.settings": { id: "routes/app.settings", parentId: "routes/app", path: "settings", index: void 0, caseSensitive: void 0, module: "/build/routes/app.settings-UZUCOFTN.js", imports: ["/build/_shared/chunk-KP4DVPAH.js", "/build/_shared/chunk-B4RN24H7.js"], hasAction: !0, hasLoader: !0, hasErrorBoundary: !1 }, "routes/app.updates": { id: "routes/app.updates", parentId: "routes/app", path: "updates", index: void 0, caseSensitive: void 0, module: "/build/routes/app.updates-FRBCTRNI.js", imports: ["/build/_shared/chunk-B4RN24H7.js"], hasAction: !1, hasLoader: !0, hasErrorBoundary: !1 }, "routes/auth.$": { id: "routes/auth.$", parentId: "root", path: "auth/*", index: void 0, caseSensitive: void 0, module: "/build/routes/auth.$-4B5WQABX.js", imports: void 0, hasAction: !1, hasLoader: !0, hasErrorBoundary: !1 }, "routes/auth.login": { id: "routes/auth.login", parentId: "root", path: "auth/login", index: void 0, caseSensitive: void 0, module: "/build/routes/auth.login-UVPCGCPZ.js", imports: ["/build/_shared/chunk-3GJP5LZF.js", "/build/_shared/chunk-MIBD2XN6.js", "/build/_shared/chunk-6FWHY3LN.js", "/build/_shared/chunk-G7CHZRZX.js"], hasAction: !0, hasLoader: !0, hasErrorBoundary: !1 }, "routes/qrcodes.$id": { id: "routes/qrcodes.$id", parentId: "root", path: "qrcodes/:id", index: void 0, caseSensitive: void 0, module: "/build/routes/qrcodes.$id-XPHPY7HS.js", imports: ["/build/_shared/chunk-DXZPNPAJ.js", "/build/_shared/chunk-G7CHZRZX.js"], hasAction: !1, hasLoader: !0, hasErrorBoundary: !1 }, "routes/qrcodes.$id.scan": { id: "routes/qrcodes.$id.scan", parentId: "routes/qrcodes.$id", path: "scan", index: void 0, caseSensitive: void 0, module: "/build/routes/qrcodes.$id.scan-2CY3SXY7.js", imports: void 0, hasAction: !1, hasLoader: !0, hasErrorBoundary: !1 }, "routes/webhooks": { id: "routes/webhooks", parentId: "root", path: "webhooks", index: void 0, caseSensitive: void 0, module: "/build/routes/webhooks-JFV2P4HI.js", imports: void 0, hasAction: !0, hasLoader: !1, hasErrorBoundary: !1 } }, version: "7f43ebf0", hmr: { runtime: "/build/_shared/chunk-DYYXLKDN.js", timestamp: 1700731341224 }, url: "/build/manifest-7F43EBF0.js" };
+var assets_manifest_default = { entry: { module: "/build/entry.client-5NOSUHKK.js", imports: ["/build/_shared/chunk-ZWGWGGVF.js", "/build/_shared/chunk-GIAAE3CH.js", "/build/_shared/chunk-Y6DQSA33.js", "/build/_shared/chunk-DYYXLKDN.js", "/build/_shared/chunk-UWV35TSL.js", "/build/_shared/chunk-XU7DNSPJ.js", "/build/_shared/chunk-BOXFZXVX.js", "/build/_shared/chunk-PNG5AS42.js"] }, routes: { root: { id: "root", parentId: void 0, path: "", index: void 0, caseSensitive: void 0, module: "/build/root-62AAMQL6.js", imports: ["/build/_shared/chunk-KP4DVPAH.js"], hasAction: !1, hasLoader: !1, hasErrorBoundary: !1 }, "routes/_index": { id: "routes/_index", parentId: "root", path: void 0, index: !0, caseSensitive: void 0, module: "/build/routes/_index-F63H7M7K.js", imports: ["/build/_shared/chunk-3GJP5LZF.js", "/build/_shared/chunk-G7CHZRZX.js"], hasAction: !1, hasLoader: !0, hasErrorBoundary: !1 }, "routes/app": { id: "routes/app", parentId: "root", path: "app", index: void 0, caseSensitive: void 0, module: "/build/routes/app-LQJA363D.js", imports: ["/build/_shared/chunk-NMZL6IDN.js", "/build/_shared/chunk-MIBD2XN6.js", "/build/_shared/chunk-2MOAIH4J.js", "/build/_shared/chunk-SU66BP3D.js", "/build/_shared/chunk-6FWHY3LN.js", "/build/_shared/chunk-C3NP7DHP.js", "/build/_shared/chunk-G7CHZRZX.js"], hasAction: !1, hasLoader: !0, hasErrorBoundary: !0 }, "routes/app._index": { id: "routes/app._index", parentId: "routes/app", path: void 0, index: !0, caseSensitive: void 0, module: "/build/routes/app._index-SBW3HGLG.js", imports: ["/build/_shared/chunk-KP4DVPAH.js", "/build/_shared/chunk-GU2ZEMMZ.js"], hasAction: !0, hasLoader: !1, hasErrorBoundary: !1 }, "routes/app.product.$id.variants.$variantId": { id: "routes/app.product.$id.variants.$variantId", parentId: "routes/app", path: "product/:id/variants/:variantId", index: void 0, caseSensitive: void 0, module: "/build/routes/app.product.$id.variants.$variantId-26AKKIK6.js", imports: ["/build/_shared/chunk-KP4DVPAH.js"], hasAction: !1, hasLoader: !1, hasErrorBoundary: !1 }, "routes/app.products.$id": { id: "routes/app.products.$id", parentId: "routes/app", path: "products/:id", index: void 0, caseSensitive: void 0, module: "/build/routes/app.products.$id-4TDYCT3A.js", imports: ["/build/_shared/chunk-KP4DVPAH.js"], hasAction: !1, hasLoader: !1, hasErrorBoundary: !1 }, "routes/app.qrcodes.$id": { id: "routes/app.qrcodes.$id", parentId: "routes/app", path: "qrcodes/:id", index: void 0, caseSensitive: void 0, module: "/build/routes/app.qrcodes.$id-P2CYNJ3H.js", imports: ["/build/_shared/chunk-DXZPNPAJ.js"], hasAction: !0, hasLoader: !0, hasErrorBoundary: !1 }, "routes/app.settings": { id: "routes/app.settings", parentId: "routes/app", path: "settings", index: void 0, caseSensitive: void 0, module: "/build/routes/app.settings-RWILHD7B.js", imports: ["/build/_shared/chunk-KP4DVPAH.js", "/build/_shared/chunk-GU2ZEMMZ.js"], hasAction: !0, hasLoader: !0, hasErrorBoundary: !1 }, "routes/app.updates": { id: "routes/app.updates", parentId: "routes/app", path: "updates", index: void 0, caseSensitive: void 0, module: "/build/routes/app.updates-2A3LCR3L.js", imports: ["/build/_shared/chunk-GU2ZEMMZ.js"], hasAction: !0, hasLoader: !0, hasErrorBoundary: !1 }, "routes/auth.$": { id: "routes/auth.$", parentId: "root", path: "auth/*", index: void 0, caseSensitive: void 0, module: "/build/routes/auth.$-4B5WQABX.js", imports: void 0, hasAction: !1, hasLoader: !0, hasErrorBoundary: !1 }, "routes/auth.login": { id: "routes/auth.login", parentId: "root", path: "auth/login", index: void 0, caseSensitive: void 0, module: "/build/routes/auth.login-UVPCGCPZ.js", imports: ["/build/_shared/chunk-3GJP5LZF.js", "/build/_shared/chunk-MIBD2XN6.js", "/build/_shared/chunk-6FWHY3LN.js", "/build/_shared/chunk-G7CHZRZX.js"], hasAction: !0, hasLoader: !0, hasErrorBoundary: !1 }, "routes/qrcodes.$id": { id: "routes/qrcodes.$id", parentId: "root", path: "qrcodes/:id", index: void 0, caseSensitive: void 0, module: "/build/routes/qrcodes.$id-XPHPY7HS.js", imports: ["/build/_shared/chunk-DXZPNPAJ.js", "/build/_shared/chunk-G7CHZRZX.js"], hasAction: !1, hasLoader: !0, hasErrorBoundary: !1 }, "routes/qrcodes.$id.scan": { id: "routes/qrcodes.$id.scan", parentId: "routes/qrcodes.$id", path: "scan", index: void 0, caseSensitive: void 0, module: "/build/routes/qrcodes.$id.scan-2CY3SXY7.js", imports: void 0, hasAction: !1, hasLoader: !0, hasErrorBoundary: !1 }, "routes/webhooks": { id: "routes/webhooks", parentId: "root", path: "webhooks", index: void 0, caseSensitive: void 0, module: "/build/routes/webhooks-JFV2P4HI.js", imports: void 0, hasAction: !0, hasLoader: !1, hasErrorBoundary: !1 } }, version: "36738a9e", hmr: { runtime: "/build/_shared/chunk-DYYXLKDN.js", timestamp: 1700732007751 }, url: "/build/manifest-36738A9E.js" };
 
 // server-entry-module:@remix-run/dev/server-build
 var mode = "development", assetsBuildDirectory = "public/build", future = { v3_fetcherPersist: !1 }, publicPath = "/build/", entry = { module: entry_server_exports }, routes = {
