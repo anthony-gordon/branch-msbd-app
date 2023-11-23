@@ -22,7 +22,7 @@ export const action = async ({request}) => {
 }
  
 
-export default  function Updates() {
+export default function Updates() {
   const submit = useSubmit();
 
   const handleClick = () => {

@@ -2,7 +2,7 @@
 
 name = "branch-msbd-app"
 client_id = "2377268e6e57bb7ea9b46fadf7b51563"
-application_url = "https://processes-blame-commons-pm.trycloudflare.com"
+application_url = "https://gods-ahead-media-necessity.trycloudflare.com"
 embedded = true
 
 [access_scopes]
@@ -11,10 +11,10 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://processes-blame-commons-pm.trycloudflare.com/auth/callback",
-  "https://processes-blame-commons-pm.trycloudflare.com/auth/shopify/callback",
-  "https://processes-blame-commons-pm.trycloudflare.com/api/auth/callback",
-  "https://processes-blame-commons-pm.trycloudflare.com/.shopify/graphiql/auth/callback"
+  "https://gods-ahead-media-necessity.trycloudflare.com/auth/callback",
+  "https://gods-ahead-media-necessity.trycloudflare.com/auth/shopify/callback",
+  "https://gods-ahead-media-necessity.trycloudflare.com/api/auth/callback",
+  "https://gods-ahead-media-necessity.trycloudflare.com/.shopify/graphiql/auth/callback"
 ]
 
 [webhooks]
